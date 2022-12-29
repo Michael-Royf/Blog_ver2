@@ -15,6 +15,7 @@ import java.util.Set;
 @Builder
 public class PostResponse {
     private Long id;
+    private String username;
     private String title;
     private String description;
     private String content;

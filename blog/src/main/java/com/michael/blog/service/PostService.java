@@ -12,6 +12,9 @@ public interface PostService {
 
     PostResponsePagination getAllPosts(int pageNo, int pageSiZe, String sortBy, String sortDir);
 
+    //  List<PostResponse> getMyPosts(int pageNo, int pageSiZe, String sortBy, String sortDir);
+    List<PostResponse> getMyPosts();
+
     PostResponse getPostById(Long postId);
 
     MessageResponse deletePost(Long postId);

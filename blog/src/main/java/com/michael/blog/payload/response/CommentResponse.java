@@ -13,10 +13,10 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Builder
+@ToString
 public class CommentResponse {
     private Long id;
-    private String name;
-    private String email;
+    private String username;
     private String body;
     @JsonFormat(pattern = "yyyy-mm-dd HH:mm:ss", timezone = "Israel")
     private LocalDateTime createDate;

@@ -8,6 +8,7 @@ import com.michael.blog.payload.response.MessageResponse;
 import com.michael.blog.repository.CommentRepository;
 import com.michael.blog.repository.PostRepository;
 import com.michael.blog.service.CommentService;
+import com.michael.blog.service.UserService;
 import jakarta.persistence.EntityNotFoundException;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,23 +20,31 @@ import java.util.stream.Collectors;
 @Service
 public class CommentServiceImpl implements CommentService {
 
-    @Autowired
+
     private CommentRepository commentRepository;
-    @Autowired
     private PostRepository postRepository;
+    private ModelMapper mapper;
+    private UserService userService;
 
     @Autowired
-    private ModelMapper mapper;
-
+    public CommentServiceImpl(CommentRepository commentRepository,
+                              PostRepository postRepository,
+                              ModelMapper mapper,
+                              UserService userService) {
+        this.commentRepository = commentRepository;
+        this.postRepository = postRepository;
+        this.mapper = mapper;
+        this.userService = userService;
+    }
 
     @Override
     public CommentResponse createComment(long postId, CommentRequest commentRequest) {
         Post post = getPostFromDB(postId);
         Comment comment = Comment.builder()
-                .name(commentRequest.getName())
-                .email(commentRequest.getEmail())
+                .username(userService.getLoggedInUser().getUsername())
                 .body(commentRequest.getBody())
                 .post(post)
+                .user(userService.getLoggedInUser())
                 .build();
         comment = commentRepository.save(comment);
         return mapper.map(comment, CommentResponse.class);
@@ -62,9 +71,9 @@ public class CommentServiceImpl implements CommentService {
         Post post = getPostFromDB(postId);
         Comment comment = getCommentFromDB(commentId);
         isCommentBelongPost(post, comment);
-
-        comment.setName(commentRequest.getName());
-        comment.setEmail(commentRequest.getEmail());
+        if (!comment.getUser().getId().equals(userService.getLoggedInUser().getId())){
+            throw  new RuntimeException("This comment doesn't belong to you, you can't update it!");
+        }
         comment.setBody(commentRequest.getBody());
         comment = commentRepository.save(comment);
         return mapper.map(comment, CommentResponse.class);
@@ -76,7 +85,9 @@ public class CommentServiceImpl implements CommentService {
         Post post = getPostFromDB(postId);
         Comment comment = getCommentFromDB(commentId);
         isCommentBelongPost(post, comment);
-
+        if (!comment.getUser().getId().equals(userService.getLoggedInUser().getId())){
+            throw  new RuntimeException("This comment doesn't belong to you, you can't delete it!");
+        }
         commentRepository.delete(comment);
         return new MessageResponse(String.format("Comment with id: %s was deleted", commentId));
     }

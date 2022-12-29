@@ -1,20 +1,21 @@
 package com.michael.blog.exception;
 
+import com.michael.blog.exception.payload.EmailExistException;
+import com.michael.blog.exception.payload.TokenException;
+import com.michael.blog.exception.payload.UserNotFoundException;
+import com.michael.blog.exception.payload.UsernameExistException;
 import com.michael.blog.payload.response.HttpResponse;
-import jakarta.persistence.NoResultException;
-import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.web.servlet.error.ErrorController;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
-import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import java.io.IOException;
@@ -45,12 +46,33 @@ public class GlobalExceptionException extends ResponseEntityExceptionHandler  {
     public ResponseEntity<HttpResponse> handleMethodGlobalException(Exception ex) {
         return createHttpResponse(BAD_REQUEST, ex.getMessage());
     }
+    @ExceptionHandler(UsernameExistException.class)
+    public ResponseEntity<HttpResponse> usernameExistException(UsernameExistException exception) {
+        return createHttpResponse(CONFLICT, exception.getMessage());
+    }
 
 
+    @ExceptionHandler(EmailExistException.class)
+    public ResponseEntity<HttpResponse> emailExistException(EmailExistException exception) {
+        return createHttpResponse(CONFLICT, exception.getMessage());
+    }
+
+
+
+    @ExceptionHandler(TokenException.class)
+    public ResponseEntity<HttpResponse> handleTokenException(TokenException ex) {
+        return createHttpResponse(BAD_REQUEST, ex.getMessage());
+    }
     @ExceptionHandler(IOException.class)
     public ResponseEntity<HttpResponse> iOException(IOException exception) {
         log.error(exception.getMessage());
         return createHttpResponse(INTERNAL_SERVER_ERROR, ERROR_PROCESSING_FILE);
+    }
+
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<HttpResponse> handleMethodUserNotFound(UserNotFoundException exception) {
+        log.error(exception.getMessage());
+        return createHttpResponse(BAD_REQUEST, ERROR_PROCESSING_FILE);
     }
 
 
@@ -58,6 +80,12 @@ public class GlobalExceptionException extends ResponseEntityExceptionHandler  {
     public ResponseEntity<HttpResponse> handleMethodArgumentTypeMismatchException(MethodArgumentTypeMismatchException ex, WebRequest request) {
         return createHttpResponse(BAD_REQUEST, ex.getMessage());
     }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<HttpResponse> handleMethodAccessDenied(AccessDeniedException ex, WebRequest request) {
+        return createHttpResponse(UNAUTHORIZED, ex.getMessage());
+    }
+
 
 
     private ResponseEntity<HttpResponse> createHttpResponse(HttpStatus httpStatus, String message) {

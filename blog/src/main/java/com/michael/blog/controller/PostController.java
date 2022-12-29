@@ -9,7 +9,10 @@ import com.michael.blog.service.PostService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 import static com.michael.blog.constants.PaginationConstants.*;
 import static org.springframework.http.HttpStatus.CREATED;
@@ -24,6 +27,7 @@ public class PostController {
 
 
     @PostMapping("/post")
+ //   @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<PostResponse> createPost(@RequestBody @Valid PostRequest postRequest) {
         return new ResponseEntity<>(postService.createPost(postRequest), CREATED);
     }
@@ -43,13 +47,21 @@ public class PostController {
     }
 
     @DeleteMapping("/post/{postId}")
+ //   @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<MessageResponse> deletePost(@PathVariable Long postId) {
         return new ResponseEntity<>(postService.deletePost(postId), OK);
     }
 
     @PutMapping("/post/{postId}")
+   // @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<PostResponse> updatePost(@PathVariable Long postId, @RequestBody PostRequest postRequest) {
         return new ResponseEntity<>(postService.updatePost(postId, postRequest), OK);
     }
+
+    @GetMapping("/myposts")
+    public ResponseEntity<List<PostResponse>> getMyPosts(){
+        return new ResponseEntity<>(postService.getMyPosts(), OK);
+    }
+
 
 }
