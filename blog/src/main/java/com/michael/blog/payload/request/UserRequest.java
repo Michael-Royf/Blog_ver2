@@ -1,9 +1,7 @@
 package com.michael.blog.payload.request;
 
-import jakarta.persistence.Column;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import lombok.*;
 
 @AllArgsConstructor
@@ -21,7 +19,4 @@ public class UserRequest {
     @Email
     @NotBlank(message = "Email should not be empty")
     private String email;
-    @NotBlank(message = "Email should not be empty")
-    @Size(min = 6, message = "The password must be at least 6 characters long")
-    private String password;
 }

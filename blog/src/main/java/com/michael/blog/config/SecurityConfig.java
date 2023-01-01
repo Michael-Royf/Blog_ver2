@@ -49,11 +49,13 @@ public class SecurityConfig {
         http.csrf().disable()
                 .authorizeHttpRequests(authorize ->
                         authorize
-                           //     .requestMatchers(HttpMethod.GET, "/api/**").permitAll()
+                                //     .requestMatchers(HttpMethod.GET, "/api/**").permitAll()
                                 .requestMatchers(HttpMethod.POST, "/api/v1/login").permitAll()
                                 .requestMatchers(HttpMethod.POST, "/api/v1/signin").permitAll()
                                 .requestMatchers(HttpMethod.POST, "/api/v1/register").permitAll()
                                 .requestMatchers(HttpMethod.POST, "/api/v1/signup").permitAll()
+                                .requestMatchers(HttpMethod.GET,   "/api/v1/registration/confirm/**").permitAll()
+                                .requestMatchers(HttpMethod.POST, "/api/v1/forgot-password").permitAll()
                                 .anyRequest().authenticated())
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(jwtAuthenticationEntryPoint))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));

@@ -30,10 +30,10 @@ public class CustomUserDetailsService implements UserDetailsService {
         user.setLastLoginDate(new Date());
         userRepository.save(user);
 
-        Set<GrantedAuthority> authority = user.getRoles()
-                .stream()
-                .map(role -> new SimpleGrantedAuthority(role.getName()))
-                .collect(Collectors.toSet());
-        return new org.springframework.security.core.userdetails.User(user.getUsername(), user.getPassword(), authority);
+//        Set<GrantedAuthority> authority = user.getRoles()
+//                .stream()
+//                .map(role -> new SimpleGrantedAuthority(role.getName()))
+//                .collect(Collectors.toSet());
+        return user;
     }
 }

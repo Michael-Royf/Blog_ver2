@@ -1,18 +1,23 @@
 package com.michael.blog.service.PostServiceImpl;
 
 import com.michael.blog.constants.UserConstant;
-import com.michael.blog.entity.Role;
+import com.michael.blog.entity.ConfirmationToken;
 import com.michael.blog.entity.User;
+import com.michael.blog.entity.enumeration.UserRole;
 import com.michael.blog.exception.payload.EmailExistException;
 import com.michael.blog.exception.payload.UserNotFoundException;
 import com.michael.blog.exception.payload.UsernameExistException;
 import com.michael.blog.payload.request.LoginRequest;
 import com.michael.blog.payload.request.UserRequest;
 import com.michael.blog.payload.response.UserResponse;
+import com.michael.blog.repository.ConfirmationTokenRepository;
 import com.michael.blog.repository.RoleRepository;
 import com.michael.blog.repository.UserRepository;
 import com.michael.blog.security.JwtTokenProvider;
+import com.michael.blog.service.ConfirmationTokenService;
+import com.michael.blog.service.EmailSender;
 import com.michael.blog.service.UserService;
+import com.michael.blog.utility.EmailBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -25,17 +30,22 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.Optional;
-import java.util.Set;
+import java.util.UUID;
 
+import static com.michael.blog.constants.SecurityConstant.VERIFICATION_TOKEN_EXPIRED;
+import static com.michael.blog.constants.SecurityConstant.VERIFICATION_TOKEN_NOT_FOUND;
 import static com.michael.blog.constants.UserConstant.*;
 
 @Service
 @Slf4j
 public class UserServiceImpl implements UserService {
+
+    public static final String LINK_FOR_CONFIRMATION = "http://localhost:8080/api/v1/registration/confirm?token=";
 
     private ModelMapper mapper;
     private AuthenticationManager authenticationManager;
@@ -43,19 +53,23 @@ public class UserServiceImpl implements UserService {
     private PasswordEncoder passwordEncoder;
     private RoleRepository roleRepository;
     private JwtTokenProvider jwtTokenProvider;
+    private ConfirmationTokenService tokenService;
+    private ConfirmationTokenRepository confirmationTokenRepository;
+    private EmailBuilder emailBuilder;
+    private EmailSender emailSender;
 
     @Autowired
-    public UserServiceImpl(ModelMapper mapper,
-                           AuthenticationManager authenticationManager,
-                           UserRepository userRepository, PasswordEncoder passwordEncoder,
-                           RoleRepository roleRepository,
-                           JwtTokenProvider jwtTokenProvider) {
+    public UserServiceImpl(ModelMapper mapper, AuthenticationManager authenticationManager, UserRepository userRepository, PasswordEncoder passwordEncoder, RoleRepository roleRepository, JwtTokenProvider jwtTokenProvider, ConfirmationTokenService tokenService, ConfirmationTokenRepository confirmationTokenRepository, EmailBuilder emailBuilder, EmailSender emailSender) {
         this.mapper = mapper;
         this.authenticationManager = authenticationManager;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.roleRepository = roleRepository;
         this.jwtTokenProvider = jwtTokenProvider;
+        this.tokenService = tokenService;
+        this.confirmationTokenRepository = confirmationTokenRepository;
+        this.emailBuilder = emailBuilder;
+        this.emailSender = emailSender;
     }
 
 
@@ -74,23 +88,57 @@ public class UserServiceImpl implements UserService {
 
         validateNewUsernameAndEmail(StringUtils.EMPTY, registerRequest.getUsername(), registerRequest.getEmail());
 
-        Set<Role> roles = new HashSet<>();
-        Role userRole = roleRepository.findByName("ROLE_USER").get();
-        roles.add(userRole);
+        String password = generatePassword();
+
         User user = User.builder()
                 .userId(generatePassword())
                 .firstName(registerRequest.getFirstName())
                 .lastName(registerRequest.getLastName())
                 .email(registerRequest.getEmail())
                 .username(registerRequest.getUsername())
-                .password(passwordEncoder.encode(registerRequest.getPassword()))
-                .roles(roles)
+                .password(passwordEncoder.encode(password))
+                .userRole(UserRole.USER)
                 .lastLoginDate(new Date())
+                .isNotLocked(true)
                 .build();
-
         userRepository.save(user);
+
+        String token = UUID.randomUUID().toString();
+        ConfirmationToken confirmationToken =
+                ConfirmationToken.builder()
+                        .token(token)
+                        .createdAt(LocalDateTime.now())
+                        .expiredAt(LocalDateTime.now().plusMinutes(15))
+                        .user(user)
+                        .build();
+        tokenService.saveConfirmationToken(confirmationToken);
+
+        String link = LINK_FOR_CONFIRMATION + token;
+        emailSender.sendEmailForVerification(
+                user.getEmail(),
+                emailBuilder.buildEmailForConfirmationEmail(user.getFirstName(), link));
+        emailSender.sendNewPassword(user.getEmail(), user.getFirstName(), password);
         return "user registered successfully!";
     }
+
+    @Override
+    @Transactional
+    public String confirmToken(String token) {
+        ConfirmationToken confirmationToken = confirmationTokenRepository.findByToken(token)
+                .orElseThrow(() -> new RuntimeException(VERIFICATION_TOKEN_NOT_FOUND));
+        if (confirmationToken.getConfirmedAt() != null) {
+            throw new RuntimeException(EMAIL_ALREADY_CONFIRMED);
+        }
+        LocalDateTime expiredDate = confirmationToken.getExpiredAt();
+        if (expiredDate.isBefore(LocalDateTime.now())) {
+            throw new RuntimeException(VERIFICATION_TOKEN_EXPIRED);
+        }
+        confirmationTokenRepository.updateConfirmedDate(token, LocalDateTime.now());
+        userRepository.enableUser(confirmationToken.getUser().getEmail());
+
+        return CONFIRMED;
+    }
+
 
     @Override
     public UserResponse getUserById(Long id) {
@@ -120,6 +168,29 @@ public class UserServiceImpl implements UserService {
         String username = authentication.getName();
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException(NO_USER_FOUND_BY_USERNAME + username));
+    }
+
+    @Override
+    public String changePassword(String oldPassword, String newPassword) {
+        User user = getLoggedInUser();
+        if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
+            throw new RuntimeException("The old password was entered incorrectly");
+        }
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+        return "password was updated";
+    }
+
+
+    @Override
+    public String forgotPassword(String email) {
+        User user = findUserByEmail(email)
+                .orElseThrow(() -> new RuntimeException(NO_USER_FOUND_BY_EMAIL + email));
+        String newPassword = generatePassword();
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+        emailSender.sendNewPassword(email, user.getFirstName(), newPassword);
+        return NEW_PASSWORD_SEND_EMAIL;
     }
 
 

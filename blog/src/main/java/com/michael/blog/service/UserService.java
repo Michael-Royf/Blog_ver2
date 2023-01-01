@@ -17,4 +17,10 @@ public interface UserService {
     String deleteUser(Long id);
 
     User getLoggedInUser();
+
+    String changePassword(String oldPassword, String newPassword);
+
+    String confirmToken(String token);
+
+    String forgotPassword(String email);
 }

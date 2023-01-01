@@ -1,6 +1,8 @@
 package com.michael.blog.controller;
 
+import com.michael.blog.payload.request.EmailRequest;
 import com.michael.blog.payload.request.LoginRequest;
+import com.michael.blog.payload.request.PasswordRequest;
 import com.michael.blog.payload.request.UserRequest;
 import com.michael.blog.payload.response.JwtAuthResponse;
 import com.michael.blog.payload.response.UserResponse;
@@ -22,19 +24,32 @@ public class UserController {
     @PostMapping(value = {"/login", "/signin"})
     public ResponseEntity<JwtAuthResponse> login(@RequestBody LoginRequest loginRequest) {
         String token = userService.login(loginRequest);
-        JwtAuthResponse jwtAuthResponse =  new JwtAuthResponse();
+        JwtAuthResponse jwtAuthResponse = new JwtAuthResponse();
         jwtAuthResponse.setAccessToken(token);
         return ResponseEntity.ok(jwtAuthResponse);
     }
 
     @PostMapping(value = {"/register", "/signup"})
-    public ResponseEntity<String> register(@RequestBody @Valid UserRequest registerRequest){
+    public ResponseEntity<String> register(@RequestBody @Valid UserRequest registerRequest) {
         return new ResponseEntity<>(userService.register(registerRequest), HttpStatus.CREATED);
     }
 
+
+    @GetMapping(path = "/registration/confirm")
+    public ResponseEntity<String> confirm(@RequestParam("token") String token) {
+        return new ResponseEntity<>(userService.confirmToken(token), HttpStatus.OK);
+    }
+
+
+
     @GetMapping("/user/{userId}")
-    public ResponseEntity<UserResponse> getUser(@PathVariable Long userId) {
+    public ResponseEntity<UserResponse> getUserProfile(@PathVariable Long userId) {
         return new ResponseEntity<>(userService.getUserById(userId), HttpStatus.OK);
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<String> forgotPassword(@RequestBody @Valid EmailRequest email) {
+        return new ResponseEntity<>(userService.forgotPassword(email.getEmail()), HttpStatus.OK);
     }
 
     @DeleteMapping("/user/{userId}")
@@ -42,4 +57,9 @@ public class UserController {
         return new ResponseEntity<>(userService.deleteUser(userId), HttpStatus.OK);
     }
 
+    @PostMapping("/user/changepassword")
+    public ResponseEntity<String> changePassword(@RequestBody PasswordRequest passwordRequest) {
+        return new ResponseEntity<>(userService.changePassword(passwordRequest.getOldPassword(),
+                passwordRequest.getNewPassword()), HttpStatus.OK);
+    }
 }

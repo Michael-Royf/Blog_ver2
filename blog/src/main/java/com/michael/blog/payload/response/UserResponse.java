@@ -1,6 +1,7 @@
 package com.michael.blog.payload.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.michael.blog.entity.enumeration.UserRole;
 import lombok.*;
 
 import java.util.Date;
@@ -18,5 +19,5 @@ public class UserResponse {
     private String email;
     @JsonFormat(pattern = "yyyy-mm-dd HH:mm:ss", timezone = "Israel")
     private Date displayLastLoginDate;
-
+    private UserRole userRole;
 }
