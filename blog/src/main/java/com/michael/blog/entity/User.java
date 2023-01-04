@@ -12,8 +12,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -40,15 +40,12 @@ public class User implements UserDetails {
     @Column(nullable = false)
     @JsonIgnore
     private String password;
-    @JsonIgnore
-    private UserRole userRole;
 
-//    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-//    @JoinTable(
-//            name = "users_roles",
-//            joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
-//            inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id"))
-//    private Set<Role> roles;
+//    @JsonIgnore
+//    @Enumerated(EnumType.STRING)
+//    private UserRole role;
+
+    private String role;
 
 
     @CreationTimestamp
@@ -69,8 +66,10 @@ public class User implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        SimpleGrantedAuthority authority = new SimpleGrantedAuthority(userRole.name());
-        return Collections.singletonList(authority);
+//        SimpleGrantedAuthority authority = new SimpleGrantedAuthority(role.name());
+//        return Collections.singletonList(authority);
+     //   return List.of(new SimpleGrantedAuthority(role.name()));
+        return List.of(new SimpleGrantedAuthority(this.role));
     }
 
     @Override
@@ -90,6 +89,6 @@ public class User implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return  isActive;
+        return isActive;
     }
 }

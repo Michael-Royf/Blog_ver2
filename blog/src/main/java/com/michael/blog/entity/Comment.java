@@ -26,10 +26,7 @@ public class Comment {
     @Column(nullable = false)
     private String body;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "post_id", nullable = false)
-    @JsonIgnore
-    private Post post;
+
 
     @CreationTimestamp
     @Column(updatable = false, name = "create_date")
@@ -40,7 +37,12 @@ public class Comment {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
-    @OnDelete(action = OnDeleteAction.CASCADE)
     @JsonIgnore
     private User user;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "post_id", nullable = false)
+    @JsonIgnore
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private Post post;
 }

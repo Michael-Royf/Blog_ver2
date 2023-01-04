@@ -1,8 +1,8 @@
 package com.michael.blog.constants;
 
 public class SecurityConstant {
-   public static final long EXPIRATION_TIME_FOR_ACCESS_TOKEN = 432_000_000; // 5 days expressed in milliseconds
-   // public static final long EXPIRATION_TIME_FOR_ACCESS_TOKEN = 180_000; // 3 min
+    public static final long EXPIRATION_TIME_FOR_ACCESS_TOKEN = 432_000_000; // 5 days expressed in milliseconds
+    // public static final long EXPIRATION_TIME_FOR_ACCESS_TOKEN = 180_000; // 3 min
     public static final long EXPIRATION_TIME_FOR_REFRESH_TOKEN = 3_600_000; //
 
     public static final String TOKEN_PREFIX = "Bearer ";
@@ -20,11 +20,13 @@ public class SecurityConstant {
     public static final String VERIFICATION_TOKEN_NOT_FOUND = "Verification Token not found";
     public static final String VERIFICATION_TOKEN_EXPIRED = "Verification token expired";
 
-    public static final String[] PUBLIC_URLS = {"/api/v1/registration/confirm/**",
+    public static final String[] PUBLIC_URLS = {
+            "/api/v1/registration/confirm/**",
             "/api/v1/login",
             "/api/v1/register",
-            "/api/v1/refresh-token/**",
-            "/api/v1/forgot-password/**"};
+            "/api/v1/signin",
+            "/api/v1/forgot-password"};
 
-    // public static final String[] PUBLIC_URLS = { "**" };
+//  "/api/v1/refresh-token/**",
+
 }

@@ -8,6 +8,7 @@ import com.michael.blog.payload.response.JwtAuthResponse;
 import com.michael.blog.payload.response.UserResponse;
 import com.michael.blog.service.UserService;
 import jakarta.validation.Valid;
+import org.apache.tomcat.util.http.parser.HttpParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -52,9 +53,15 @@ public class UserController {
         return new ResponseEntity<>(userService.forgotPassword(email.getEmail()), HttpStatus.OK);
     }
 
-    @DeleteMapping("/user/{userId}")
-    public ResponseEntity<String> deleteUser(@PathVariable Long userId) {
-        return new ResponseEntity<>(userService.deleteUser(userId), HttpStatus.OK);
+    @DeleteMapping("/user")
+    public ResponseEntity<String> deleteUser() {
+        return new ResponseEntity<>(userService.deleteUser(), HttpStatus.OK);
+    }
+
+
+    @GetMapping("user/deactivateprofile")
+    public ResponseEntity<String> deactivateProfile(){
+        return new ResponseEntity<>(userService.deactivateProfile(), HttpStatus.OK);
     }
 
     @PostMapping("/user/changepassword")

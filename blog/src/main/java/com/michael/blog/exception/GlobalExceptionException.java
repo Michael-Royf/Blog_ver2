@@ -72,7 +72,7 @@ public class GlobalExceptionException extends ResponseEntityExceptionHandler  {
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<HttpResponse> handleMethodUserNotFound(UserNotFoundException exception) {
         log.error(exception.getMessage());
-        return createHttpResponse(BAD_REQUEST, ERROR_PROCESSING_FILE);
+        return createHttpResponse(BAD_REQUEST, exception.getMessage());
     }
 
 

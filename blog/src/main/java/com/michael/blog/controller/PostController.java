@@ -27,7 +27,6 @@ public class PostController {
 
 
     @PostMapping("/post")
- //   @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<PostResponse> createPost(@RequestBody @Valid PostRequest postRequest) {
         return new ResponseEntity<>(postService.createPost(postRequest), CREATED);
     }
@@ -47,13 +46,11 @@ public class PostController {
     }
 
     @DeleteMapping("/post/{postId}")
- //   @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<MessageResponse> deletePost(@PathVariable Long postId) {
         return new ResponseEntity<>(postService.deletePost(postId), OK);
     }
 
     @PutMapping("/post/{postId}")
-   // @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<PostResponse> updatePost(@PathVariable Long postId, @RequestBody PostRequest postRequest) {
         return new ResponseEntity<>(postService.updatePost(postId, postRequest), OK);
     }

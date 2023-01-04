@@ -11,8 +11,8 @@ import com.michael.blog.payload.request.LoginRequest;
 import com.michael.blog.payload.request.UserRequest;
 import com.michael.blog.payload.response.UserResponse;
 import com.michael.blog.repository.ConfirmationTokenRepository;
-import com.michael.blog.repository.RoleRepository;
 import com.michael.blog.repository.UserRepository;
+import com.michael.blog.security.JwtService;
 import com.michael.blog.security.JwtTokenProvider;
 import com.michael.blog.service.ConfirmationTokenService;
 import com.michael.blog.service.EmailSender;
@@ -51,21 +51,20 @@ public class UserServiceImpl implements UserService {
     private AuthenticationManager authenticationManager;
     private UserRepository userRepository;
     private PasswordEncoder passwordEncoder;
-    private RoleRepository roleRepository;
-    private JwtTokenProvider jwtTokenProvider;
+    //private JwtTokenProvider jwtTokenProvider;
+    private JwtService jwtService;
     private ConfirmationTokenService tokenService;
     private ConfirmationTokenRepository confirmationTokenRepository;
     private EmailBuilder emailBuilder;
     private EmailSender emailSender;
 
     @Autowired
-    public UserServiceImpl(ModelMapper mapper, AuthenticationManager authenticationManager, UserRepository userRepository, PasswordEncoder passwordEncoder, RoleRepository roleRepository, JwtTokenProvider jwtTokenProvider, ConfirmationTokenService tokenService, ConfirmationTokenRepository confirmationTokenRepository, EmailBuilder emailBuilder, EmailSender emailSender) {
+    public UserServiceImpl(ModelMapper mapper, AuthenticationManager authenticationManager, UserRepository userRepository, PasswordEncoder passwordEncoder, JwtService jwtService, ConfirmationTokenService tokenService, ConfirmationTokenRepository confirmationTokenRepository, EmailBuilder emailBuilder, EmailSender emailSender) {
         this.mapper = mapper;
         this.authenticationManager = authenticationManager;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
-        this.roleRepository = roleRepository;
-        this.jwtTokenProvider = jwtTokenProvider;
+        this.jwtService = jwtService;
         this.tokenService = tokenService;
         this.confirmationTokenRepository = confirmationTokenRepository;
         this.emailBuilder = emailBuilder;
@@ -80,7 +79,10 @@ public class UserServiceImpl implements UserService {
                         loginRequest.getUsername(),
                         loginRequest.getPassword()));
         SecurityContextHolder.getContext().setAuthentication(authenticate);
-        return jwtTokenProvider.generateToken(authenticate);
+        String username = authenticate.getName();
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(()->new UsernameNotFoundException("User not found"));
+        return jwtService.generateToken(user);
     }
 
     @Override
@@ -97,7 +99,7 @@ public class UserServiceImpl implements UserService {
                 .email(registerRequest.getEmail())
                 .username(registerRequest.getUsername())
                 .password(passwordEncoder.encode(password))
-                .userRole(UserRole.USER)
+                .role("ROLE_USER")
                 .lastLoginDate(new Date())
                 .isNotLocked(true)
                 .build();
@@ -118,7 +120,7 @@ public class UserServiceImpl implements UserService {
                 user.getEmail(),
                 emailBuilder.buildEmailForConfirmationEmail(user.getFirstName(), link));
         emailSender.sendNewPassword(user.getEmail(), user.getFirstName(), password);
-        return "user registered successfully!";
+        return "User registered successfully!";
     }
 
     @Override
@@ -135,7 +137,6 @@ public class UserServiceImpl implements UserService {
         }
         confirmationTokenRepository.updateConfirmedDate(token, LocalDateTime.now());
         userRepository.enableUser(confirmationToken.getUser().getEmail());
-
         return CONFIRMED;
     }
 
@@ -156,10 +157,18 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public String deleteUser(Long id) {
-        User user = getUserFromDbById(id);
+    public String deleteUser() {
+        User user = getLoggedInUser();
         userRepository.delete(user);
         return String.format(UserConstant.USER_DELETED, user.getUsername());
+    }
+
+    @Override
+    public String deactivateProfile() {
+        User user = getLoggedInUser();
+        userRepository.disabledUser(user.getEmail());
+        return "Your profile is disabled.\n" +
+                "To activate your profile, contact support.";
     }
 
     @Override
@@ -178,7 +187,7 @@ public class UserServiceImpl implements UserService {
         }
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
-        return "password was updated";
+        return "Password was updated";
     }
 
 

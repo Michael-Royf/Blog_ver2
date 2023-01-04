@@ -14,7 +14,9 @@ public interface UserService {
 
     UserResponse updateUser(Long id, UserRequest registerRequest);
 
-    String deleteUser(Long id);
+    String deleteUser();
+
+    String deactivateProfile();
 
     User getLoggedInUser();
 
