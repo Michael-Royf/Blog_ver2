@@ -1,6 +1,5 @@
 package com.michael.blog.controller;
 
-import com.michael.blog.constants.PaginationConstants.*;
 import com.michael.blog.payload.request.PostRequest;
 import com.michael.blog.payload.response.MessageResponse;
 import com.michael.blog.payload.response.PostResponse;
@@ -9,7 +8,6 @@ import com.michael.blog.service.PostService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -56,9 +54,13 @@ public class PostController {
     }
 
     @GetMapping("/myposts")
-    public ResponseEntity<List<PostResponse>> getMyPosts(){
+    public ResponseEntity<List<PostResponse>> getMyPosts() {
         return new ResponseEntity<>(postService.getMyPosts(), OK);
     }
 
+    @GetMapping("/posts/{categoryId}")
+    public ResponseEntity<List<PostResponse>> getPostsByCategory(@PathVariable("categoryId") Long categoryId) {
+        return new ResponseEntity<>(postService.getPostsByCategory(categoryId), OK);
+    }
 
 }

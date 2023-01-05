@@ -8,6 +8,11 @@ import java.util.List;
 
 @Repository
 public interface PostRepository extends JpaRepository<Post, Long> {
-    List<Post>  getPostByUserId(Long userId);
-    List<Post>  getAllByUserId(Long userId);
+    List<Post> getPostByUserId(Long userId);
+
+    List<Post> getAllByUserId(Long userId);
+
+    //List<Post> findByCategoryId(Long categoryId);
+
+    List<Post> findPostsByCategoryId(Long categoryId);
 }

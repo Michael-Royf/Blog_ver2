@@ -21,4 +21,6 @@ public interface PostService {
 
     PostResponse updatePost(Long postId, PostRequest postRequest);
 
+    List<PostResponse> getPostsByCategory(Long categoryId);
+
 }

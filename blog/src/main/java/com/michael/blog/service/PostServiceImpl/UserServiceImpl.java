@@ -99,7 +99,7 @@ public class UserServiceImpl implements UserService {
                 .email(registerRequest.getEmail())
                 .username(registerRequest.getUsername())
                 .password(passwordEncoder.encode(password))
-                .role("ROLE_USER")
+                .role("ROLE_ADMIN")
                 .lastLoginDate(new Date())
                 .isNotLocked(true)
                 .build();

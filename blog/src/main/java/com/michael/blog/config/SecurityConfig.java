@@ -44,7 +44,11 @@ public class SecurityConfig {
                                 .requestMatchers(HttpMethod.POST, "/api/v1/signup").permitAll()
                                 .requestMatchers(HttpMethod.POST, "/api/v1/forgot-password").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/v1/registration/confirm/**").permitAll()
+
                                 .requestMatchers(HttpMethod.POST, "/api/v1/admin/**").hasRole("ADMIN")
+                                .requestMatchers(HttpMethod.POST, "/api/v1/category/**").hasRole("ADMIN")
+                                .requestMatchers(HttpMethod.PUT, "/api/v1/category/**").hasRole("ADMIN")
+                                .requestMatchers(HttpMethod.DELETE, "/api/v1/category/**").hasRole("ADMIN")
                                 .anyRequest().authenticated())
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(jwtAuthenticationEntryPoint))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));

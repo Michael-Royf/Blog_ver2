@@ -1,10 +1,12 @@
 package com.michael.blog.service.PostServiceImpl;
 
+import com.michael.blog.entity.Category;
 import com.michael.blog.entity.Post;
 import com.michael.blog.payload.request.PostRequest;
 import com.michael.blog.payload.response.MessageResponse;
 import com.michael.blog.payload.response.PostResponse;
 import com.michael.blog.payload.response.PostResponsePagination;
+import com.michael.blog.repository.CategoryRepository;
 import com.michael.blog.repository.PostRepository;
 import com.michael.blog.service.PostService;
 import com.michael.blog.service.UserService;
@@ -23,26 +25,32 @@ import java.util.stream.Collectors;
 @Service
 public class PostServiceImpl implements PostService {
 
-
     private PostRepository postRepository;
     private ModelMapper mapper;
     private UserService userService;
+    private CategoryRepository categoryRepository;
 
     @Autowired
-    public PostServiceImpl(PostRepository postRepository, ModelMapper mapper, UserService userService) {
+    public PostServiceImpl(PostRepository postRepository,
+                           ModelMapper mapper,
+                           UserService userService,
+                           CategoryRepository categoryRepository) {
         this.postRepository = postRepository;
         this.mapper = mapper;
         this.userService = userService;
+        this.categoryRepository = categoryRepository;
     }
 
     @Override
     public PostResponse createPost(PostRequest postRequest) {
+        Category category = getCategoryFromDBById(postRequest.getCategoryId());
         Post post = Post.builder()
                 .username(userService.getLoggedInUser().getUsername())
                 .title(postRequest.getTitle())
                 .description(postRequest.getDescription())
                 .content(postRequest.getContent())
                 .user(userService.getLoggedInUser())
+                .category(category)
                 .build();
         post = postRepository.save(post);
         return mapper.map(post, PostResponse.class);
@@ -76,7 +84,7 @@ public class PostServiceImpl implements PostService {
 
         List<Post> posts = postRepository.getAllByUserId(userService.getLoggedInUser().getId());
         return posts.stream()
-                .map(post->mapper.map(post, PostResponse.class))
+                .map(post -> mapper.map(post, PostResponse.class))
                 .collect(Collectors.toList());
     }
 
@@ -89,8 +97,8 @@ public class PostServiceImpl implements PostService {
     @Override
     public MessageResponse deletePost(Long postId) {
         Post post = getPostFromDB(postId);
-        if (!post.getUser().getId().equals(userService.getLoggedInUser().getId())){
-           throw new RuntimeException("This post doesn't belong to you, you can't delete it!");
+        if (!post.getUser().getId().equals(userService.getLoggedInUser().getId())) {
+            throw new RuntimeException("This post doesn't belong to you, you can't delete it!");
         }
         postRepository.delete(post);
         return new MessageResponse(String.format("Post with id: %s was deleted", postId));
@@ -99,20 +107,35 @@ public class PostServiceImpl implements PostService {
     @Override
     public PostResponse updatePost(Long postId, PostRequest postRequest) {
         Post post = getPostFromDB(postId);
-        if (!post.getUser().getId().equals(userService.getLoggedInUser().getId())){
+        if (!post.getUser().getId().equals(userService.getLoggedInUser().getId())) {
             throw new RuntimeException("This post doesn't belong to you, you can't update it!");
         }
+        Category category = getCategoryFromDBById(postRequest.getCategoryId());
         post.setTitle(postRequest.getTitle());
         post.setDescription(postRequest.getDescription());
         post.setContent(postRequest.getContent());
+        post.setCategory(category);
         post = postRepository.save(post);
         return mapper.map(post, PostResponse.class);
+    }
+
+    @Override
+    public List<PostResponse> getPostsByCategory(Long categoryId) {
+        Category category = getCategoryFromDBById(categoryId);
+        return postRepository.findPostsByCategoryId(categoryId).stream()
+                .map(post -> mapper.map(post, PostResponse.class))
+                .collect(Collectors.toList());
     }
 
 
     private Post getPostFromDB(Long postId) {
         return postRepository.findById(postId)
                 .orElseThrow(() -> new EntityNotFoundException(String.format("Post with id: %s not found", postId)));
+    }
+
+    private Category getCategoryFromDBById(Long categoryId) {
+        return categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new EntityNotFoundException(String.format("Category with id %d not found", categoryId)));
     }
 
 }

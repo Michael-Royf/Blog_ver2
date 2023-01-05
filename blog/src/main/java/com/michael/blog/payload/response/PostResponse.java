@@ -24,4 +24,5 @@ public class PostResponse {
     @JsonFormat(pattern = "yyyy-mm-dd HH:mm:ss", timezone = "Israel")
     private LocalDateTime updateDate;
     private Set<Comment> comments = new HashSet<>();
+    private Long categoryId;
 }

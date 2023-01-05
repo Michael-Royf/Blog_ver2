@@ -47,9 +47,13 @@ public class Post {
     private Set<Comment> comments = new HashSet<>();
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "user_id", nullable = false )
+    @JoinColumn(name = "user_id", nullable = false)
     @JsonIgnore
     @OnDelete(action = OnDeleteAction.CASCADE)
     private User user;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id")
+    private Category category;
 
 }
