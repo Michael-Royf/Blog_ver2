@@ -11,6 +11,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -29,7 +32,7 @@ import static org.springframework.http.HttpStatus.*;
 
 @Slf4j
 @RestControllerAdvice
-public class GlobalExceptionException extends ResponseEntityExceptionHandler  {
+public class GlobalExceptionException extends ResponseEntityExceptionHandler {
 //implements ErrorController
 
     private static final String ACCOUNT_LOCKED = "Your account has been locked. Please contact administration";
@@ -42,10 +45,28 @@ public class GlobalExceptionException extends ResponseEntityExceptionHandler  {
     public static final String ERROR_PATH = "/error";
 
 
+    @ExceptionHandler(DisabledException.class)
+    public ResponseEntity<HttpResponse> accountDisabledException() {
+        return createHttpResponse(BAD_REQUEST, ACCOUNT_DISABLED);
+    }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<HttpResponse> badCredentialsException() {
+        return createHttpResponse(BAD_REQUEST, INCORRECT_CREDENTIALS);
+    }
+
+
+    @ExceptionHandler(LockedException.class)
+    public ResponseEntity<HttpResponse> lockedException() {
+        return createHttpResponse(UNAUTHORIZED, ACCOUNT_LOCKED);
+    }
+
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<HttpResponse> handleMethodGlobalException(Exception ex) {
         return createHttpResponse(BAD_REQUEST, ex.getMessage());
     }
+
     @ExceptionHandler(UsernameExistException.class)
     public ResponseEntity<HttpResponse> usernameExistException(UsernameExistException exception) {
         return createHttpResponse(CONFLICT, exception.getMessage());
@@ -58,11 +79,11 @@ public class GlobalExceptionException extends ResponseEntityExceptionHandler  {
     }
 
 
-
     @ExceptionHandler(TokenException.class)
     public ResponseEntity<HttpResponse> handleTokenException(TokenException ex) {
         return createHttpResponse(BAD_REQUEST, ex.getMessage());
     }
+
     @ExceptionHandler(IOException.class)
     public ResponseEntity<HttpResponse> iOException(IOException exception) {
         log.error(exception.getMessage());
@@ -81,12 +102,11 @@ public class GlobalExceptionException extends ResponseEntityExceptionHandler  {
         return createHttpResponse(BAD_REQUEST, ex.getMessage());
     }
 
+
     @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<HttpResponse> handleMethodAccessDenied(AccessDeniedException ex, WebRequest request) {
-        return createHttpResponse(UNAUTHORIZED, ex.getMessage());
+    public ResponseEntity<HttpResponse> accessDeniedException() {
+        return createHttpResponse(FORBIDDEN, NOT_ENOUGH_PERMISSION);
     }
-
-
 
     private ResponseEntity<HttpResponse> createHttpResponse(HttpStatus httpStatus, String message) {
         return new ResponseEntity<>(new HttpResponse(

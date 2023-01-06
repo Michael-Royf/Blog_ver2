@@ -25,6 +25,7 @@ import java.util.List;
 public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(nullable = false, updatable = false)
     private Long id;
 
     @Column(nullable = false, updatable = false)
@@ -41,12 +42,10 @@ public class User implements UserDetails {
     @JsonIgnore
     private String password;
 
-//    @JsonIgnore
-//    @Enumerated(EnumType.STRING)
-//    private UserRole role;
-
-    private String role;
-
+   // @JsonIgnore
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, updatable = true)
+    private UserRole role;
 
     @CreationTimestamp
     @Column(updatable = false, name = "registration_date")
@@ -69,7 +68,7 @@ public class User implements UserDetails {
 //        SimpleGrantedAuthority authority = new SimpleGrantedAuthority(role.name());
 //        return Collections.singletonList(authority);
      //   return List.of(new SimpleGrantedAuthority(role.name()));
-        return List.of(new SimpleGrantedAuthority(this.role));
+        return List.of(new SimpleGrantedAuthority(this.role.name()));
     }
 
     @Override

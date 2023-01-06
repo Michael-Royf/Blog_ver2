@@ -1,9 +1,10 @@
-package com.michael.blog.service.PostServiceImpl;
+package com.michael.blog.service.impl;
 
 import com.michael.blog.constants.UserConstant;
 import com.michael.blog.entity.Comment;
 import com.michael.blog.entity.Post;
 import com.michael.blog.entity.User;
+import com.michael.blog.entity.enumeration.UserRole;
 import com.michael.blog.exception.payload.UserNotFoundException;
 import com.michael.blog.repository.CommentRepository;
 import com.michael.blog.repository.PostRepository;
@@ -32,6 +33,9 @@ public class AdminServiceImpl implements AdminService {
     @Override
     public String deleteUser(Long userId) {
         User user = getUserFromDbById(userId);
+        if (!user.getRole().name().equals(UserRole.ROlE_USER.name())) {
+            throw new RuntimeException("You cannot delete this account");
+        }
         userRepository.delete(user);
         return String.format("User with username:  %s was deleted", user.getUsername());
     }
@@ -39,6 +43,9 @@ public class AdminServiceImpl implements AdminService {
     @Override
     public String activationUserProfile(Long userId) {
         User user = getUserFromDbById(userId);
+        if (!user.getRole().name().equals(UserRole.ROlE_USER.name())) {
+            throw new RuntimeException("You cannot activation this account");
+        }
         userRepository.enableUser(user.getEmail());
         return String.format("User profile with username: %s was activation", userId);
     }
@@ -46,13 +53,16 @@ public class AdminServiceImpl implements AdminService {
     @Override
     public String deactivationUserProfile(Long userId) {
         User user = getUserFromDbById(userId);
+        if (!user.getRole().name().equals(UserRole.ROlE_USER.name())) {
+            throw new RuntimeException("You cannot deactivation this account");
+        }
         userRepository.disabledUser(user.getEmail());
         return String.format("User profile with username: %s was disabled", user.getUsername());
     }
 
     @Override
     public String deletePost(Long postId) {
-        Post post =getPostFromDB(postId);
+        Post post = getPostFromDB(postId);
         postRepository.delete(post);
         return String.format("Post with id: %s was deleted", postId);
     }
@@ -62,6 +72,22 @@ public class AdminServiceImpl implements AdminService {
         Comment comment = getCommentFromDB(commentId);
         commentRepository.delete(comment);
         return String.format("Comment with id: %s was deleted", commentId);
+    }
+
+    @Override
+    public String changeUserRoleToAdmin(Long userId) {
+        User user = getUserFromDbById(userId);
+        user.setRole(UserRole.ROLE_ADMIN);
+        userRepository.save(user);
+        return String.format("The account with the username %s is assigned the role of the Admin", user.getUsername());
+    }
+
+    @Override
+    public String changeAdminRoleToUser(Long userId) {
+        User user = getUserFromDbById(userId);
+        user.setRole(UserRole.ROlE_USER);
+        userRepository.save(user);
+        return String.format("The account with the username %s is assigned the role of the User", user.getUsername());
     }
 
 

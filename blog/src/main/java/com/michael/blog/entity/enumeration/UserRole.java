@@ -1,7 +1,7 @@
 package com.michael.blog.entity.enumeration;
 
 public enum UserRole {
-    USER,
-    ADMIN,
-    SUPER_ADMIN
+    ROlE_USER,
+    ROLE_ADMIN,
+    ROLE_SUPERADMIN
 }

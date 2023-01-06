@@ -1,4 +1,4 @@
-package com.michael.blog.service.PostServiceImpl;
+package com.michael.blog.service.impl;
 
 import com.michael.blog.constants.UserConstant;
 import com.michael.blog.entity.ConfirmationToken;
@@ -13,7 +13,6 @@ import com.michael.blog.payload.response.UserResponse;
 import com.michael.blog.repository.ConfirmationTokenRepository;
 import com.michael.blog.repository.UserRepository;
 import com.michael.blog.security.JwtService;
-import com.michael.blog.security.JwtTokenProvider;
 import com.michael.blog.service.ConfirmationTokenService;
 import com.michael.blog.service.EmailSender;
 import com.michael.blog.service.UserService;
@@ -99,7 +98,7 @@ public class UserServiceImpl implements UserService {
                 .email(registerRequest.getEmail())
                 .username(registerRequest.getUsername())
                 .password(passwordEncoder.encode(password))
-                .role("ROLE_ADMIN")
+                .role(UserRole.ROLE_SUPERADMIN)
                 .lastLoginDate(new Date())
                 .isNotLocked(true)
                 .build();
@@ -147,14 +146,19 @@ public class UserServiceImpl implements UserService {
         return mapper.map(user, UserResponse.class);
     }
 
+    @Override
+    public UserResponse getMyProfile() {
+      User user = getLoggedInUser();
+      return mapper.map(user, UserResponse.class);
+    }
 
     @Override
-    public UserResponse updateUser(Long id, UserRequest registerRequest) {
-//        User user = getUserFromDbById(id);
-//        user.setName(registerRequest.getName());
-//        user.
+    public UserResponse updateUser(UserRequest registerRequest) {
         return null;
     }
+
+
+
 
     @Override
     public String deleteUser() {

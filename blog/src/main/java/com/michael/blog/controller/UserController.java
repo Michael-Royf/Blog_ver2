@@ -8,7 +8,6 @@ import com.michael.blog.payload.response.JwtAuthResponse;
 import com.michael.blog.payload.response.UserResponse;
 import com.michael.blog.service.UserService;
 import jakarta.validation.Valid;
-import org.apache.tomcat.util.http.parser.HttpParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,7 +20,6 @@ public class UserController {
     private UserService userService;
 
 
-    //Build Login REST API
     @PostMapping(value = {"/login", "/signin"})
     public ResponseEntity<JwtAuthResponse> login(@RequestBody LoginRequest loginRequest) {
         String token = userService.login(loginRequest);
@@ -42,11 +40,16 @@ public class UserController {
     }
 
 
-
     @GetMapping("/user/{userId}")
     public ResponseEntity<UserResponse> getUserProfile(@PathVariable Long userId) {
         return new ResponseEntity<>(userService.getUserById(userId), HttpStatus.OK);
     }
+
+    @GetMapping("/user/myprofile")
+    public ResponseEntity<UserResponse> getMyProfile() {
+        return new ResponseEntity<>(userService.getMyProfile(), HttpStatus.OK);
+    }
+
 
     @PostMapping("/forgot-password")
     public ResponseEntity<String> forgotPassword(@RequestBody @Valid EmailRequest email) {
@@ -60,7 +63,7 @@ public class UserController {
 
 
     @GetMapping("user/deactivateprofile")
-    public ResponseEntity<String> deactivateProfile(){
+    public ResponseEntity<String> deactivateProfile() {
         return new ResponseEntity<>(userService.deactivateProfile(), HttpStatus.OK);
     }
 

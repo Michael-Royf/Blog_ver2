@@ -12,7 +12,9 @@ public interface UserService {
 
     UserResponse getUserById(Long id);
 
-    UserResponse updateUser(Long id, UserRequest registerRequest);
+    UserResponse getMyProfile();
+
+    UserResponse updateUser(UserRequest registerRequest);
 
     String deleteUser();
 

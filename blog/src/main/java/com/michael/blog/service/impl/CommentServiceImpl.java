@@ -1,4 +1,4 @@
-package com.michael.blog.service.PostServiceImpl;
+package com.michael.blog.service.impl;
 
 import com.michael.blog.entity.Comment;
 import com.michael.blog.entity.Post;

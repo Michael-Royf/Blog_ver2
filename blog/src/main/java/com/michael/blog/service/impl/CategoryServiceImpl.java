@@ -1,4 +1,4 @@
-package com.michael.blog.service.PostServiceImpl;
+package com.michael.blog.service.impl;
 
 import com.michael.blog.entity.Category;
 import com.michael.blog.payload.request.CategoryRequest;

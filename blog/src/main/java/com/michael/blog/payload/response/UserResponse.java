@@ -19,6 +19,5 @@ public class UserResponse {
     private String email;
     @JsonFormat(pattern = "yyyy-mm-dd HH:mm:ss", timezone = "Israel")
     private Date displayLastLoginDate;
-    //private UserRole userRole;
-    private String role;
+    private UserRole role;
 }

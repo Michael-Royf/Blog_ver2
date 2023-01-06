@@ -11,4 +11,10 @@ public interface AdminService {
     String deletePost(Long postId);
 
     String deleteComment(Long commentId);
+
+    String changeUserRoleToAdmin(Long userId);
+
+    String changeAdminRoleToUser(Long userId);
+
+
 }

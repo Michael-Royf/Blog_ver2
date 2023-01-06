@@ -1,5 +1,6 @@
 package com.michael.blog.security;
 
+import com.michael.blog.constants.SecurityConstant;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -33,10 +34,10 @@ public class JwtAuthenticationFilter1  extends OncePerRequestFilter {
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain) throws ServletException, IOException {
 
-        final String authHeader = request.getHeader("Authorization");
+        final String authHeader = request.getHeader(SecurityConstant.AUTHORITIES);
         final String jwt;
         final String username;
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+        if (authHeader == null || !authHeader.startsWith(SecurityConstant.TOKEN_PREFIX)) {
             filterChain.doFilter(request, response);
             return;
         }
