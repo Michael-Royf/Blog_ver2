@@ -2,6 +2,7 @@ package com.michael.blog.service.impl;
 
 import com.michael.blog.entity.Category;
 import com.michael.blog.entity.Post;
+import com.michael.blog.entity.User;
 import com.michael.blog.payload.request.PostRequest;
 import com.michael.blog.payload.response.MessageResponse;
 import com.michael.blog.payload.response.PostResponse;
@@ -44,12 +45,13 @@ public class PostServiceImpl implements PostService {
     @Override
     public PostResponse createPost(PostRequest postRequest) {
         Category category = getCategoryFromDBById(postRequest.getCategoryId());
+        User user = userService.getLoggedInUser();
         Post post = Post.builder()
-                .username(userService.getLoggedInUser().getUsername())
+                .username(user.getUsername())
                 .title(postRequest.getTitle())
                 .description(postRequest.getDescription())
                 .content(postRequest.getContent())
-                .user(userService.getLoggedInUser())
+                .user(user)
                 .category(category)
                 .build();
         post = postRepository.save(post);

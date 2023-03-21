@@ -20,7 +20,6 @@ import java.util.Date;
 
 @Configuration
 public class ApplicationConfig {
-
     @Autowired
     private UserRepository userRepository;
 

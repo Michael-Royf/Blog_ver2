@@ -1,4 +1,4 @@
-package com.michael.blog.security;
+package com.michael.blog.deleteClasses;
 
 import com.michael.blog.constants.SecurityConstant;
 import jakarta.servlet.FilterChain;
@@ -6,6 +6,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -18,14 +19,15 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
-@Component
+//@Component
 @RequiredArgsConstructor
+@Slf4j
 public class JwtAuthenticationFilter1  extends OncePerRequestFilter {
 
-    @Autowired
+  //  @Autowired
     private final UserDetailsService userDetailsService;
 
-    @Autowired
+   // @Autowired
     private final JwtService jwtService;
 
     @Override
@@ -43,6 +45,7 @@ public class JwtAuthenticationFilter1  extends OncePerRequestFilter {
         }
         jwt = authHeader.substring(7);
         username = jwtService.extractUsername(jwt);
+        log.error("username is {}",username);
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
             if (jwtService.isTokenValid(jwt, userDetails)) {

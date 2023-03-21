@@ -1,10 +1,11 @@
-package com.michael.blog.security;
+package com.michael.blog.deleteClasses;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
@@ -15,7 +16,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
-@Component
+//@Component
+@Slf4j
 public class JwtService {
     @Value("${app.jwt-secret}")
     private String jwtSecret;

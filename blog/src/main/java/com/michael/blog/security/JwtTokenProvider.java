@@ -1,6 +1,5 @@
 package com.michael.blog.security;
 
-import com.michael.blog.constants.SecurityConstant;
 import com.michael.blog.exception.payload.TokenException;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
@@ -12,37 +11,43 @@ import org.springframework.stereotype.Component;
 import java.security.Key;
 import java.util.Date;
 
-//@Component
+@Component
 public class JwtTokenProvider {
 
     @Value("${app.jwt-secret}")
     private String jwtSecret;
 
-    //generate token
+
+    // generate JWT token
     public String generateToken(Authentication authentication) {
         String username = authentication.getName();
         String token = Jwts.builder()
-                .setIssuer(SecurityConstant.MICHAEL_ROYF_LLC)
-                .setAudience(SecurityConstant.MICHAEL_ROYF_ADMINISTRATION)
                 .setSubject(username)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + SecurityConstant.EXPIRATION_TIME_FOR_ACCESS_TOKEN))
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 24))
                 .signWith(key())
                 .compact();
         return token;
     }
 
-    //get username from jwt token
+    private Key key() {
+        return Keys.hmacShaKeyFor(
+                Decoders.BASE64.decode(jwtSecret)
+        );
+    }
+
+    // get username from Jwt token
     public String getUsername(String token) {
         Claims claims = Jwts.parserBuilder()
                 .setSigningKey(key())
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
-        return claims.getSubject();
+        String username = claims.getSubject();
+        return username;
     }
 
-    //validate Jet Token
+    // validate Jwt token
     public boolean validateToken(String token) {
         try {
             Jwts.parserBuilder()
@@ -60,12 +65,4 @@ public class JwtTokenProvider {
             throw new TokenException("JWT claims string is empty.");
         }
     }
-
-    private Key key() {
-        return Keys.hmacShaKeyFor(
-                Decoders.BASE64.decode(jwtSecret)
-        );
-    }
-
-
 }

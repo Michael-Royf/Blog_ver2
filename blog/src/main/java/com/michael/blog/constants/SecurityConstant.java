@@ -27,6 +27,19 @@ public class SecurityConstant {
             "/api/v1/signin",
             "/api/v1/forgot-password"};
 
-//  "/api/v1/refresh-token/**",
+    public static final String[] PUBLIC_URLS_SWAGGER = {
+            "/swagger-resources",
+            "/configuration/security",
+            "/configuration/ui",
+            "/swagger-ui/**",
+            "/swagger-resources/**",
+            "/swagger-ui.html",
+            "/resources/**",
+            "/v2/api-docs",
+            "/v3/api-docs",
+            "/webjars",
+            "/auth",
+            "/reset"};
+
 
 }

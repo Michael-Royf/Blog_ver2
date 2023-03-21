@@ -2,6 +2,7 @@ package com.michael.blog.service.impl;
 
 import com.michael.blog.entity.Comment;
 import com.michael.blog.entity.Post;
+import com.michael.blog.entity.User;
 import com.michael.blog.payload.request.CommentRequest;
 import com.michael.blog.payload.response.CommentResponse;
 import com.michael.blog.payload.response.MessageResponse;
@@ -40,11 +41,12 @@ public class CommentServiceImpl implements CommentService {
     @Override
     public CommentResponse createComment(long postId, CommentRequest commentRequest) {
         Post post = getPostFromDB(postId);
+        User user = userService.getLoggedInUser();
         Comment comment = Comment.builder()
-                .username(userService.getLoggedInUser().getUsername())
+                .username(user.getUsername())
                 .body(commentRequest.getBody())
                 .post(post)
-                .user(userService.getLoggedInUser())
+                .user(user)
                 .build();
         comment = commentRepository.save(comment);
         return mapper.map(comment, CommentResponse.class);

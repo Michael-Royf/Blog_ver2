@@ -12,7 +12,7 @@ import com.michael.blog.payload.request.UserRequest;
 import com.michael.blog.payload.response.UserResponse;
 import com.michael.blog.repository.ConfirmationTokenRepository;
 import com.michael.blog.repository.UserRepository;
-import com.michael.blog.security.JwtService;
+import com.michael.blog.security.JwtTokenProvider;
 import com.michael.blog.service.ConfirmationTokenService;
 import com.michael.blog.service.EmailSender;
 import com.michael.blog.service.UserService;
@@ -50,20 +50,28 @@ public class UserServiceImpl implements UserService {
     private AuthenticationManager authenticationManager;
     private UserRepository userRepository;
     private PasswordEncoder passwordEncoder;
-    //private JwtTokenProvider jwtTokenProvider;
-    private JwtService jwtService;
+    private JwtTokenProvider jwtTokenProvider;
+    //  private JwtService jwtService;
     private ConfirmationTokenService tokenService;
     private ConfirmationTokenRepository confirmationTokenRepository;
     private EmailBuilder emailBuilder;
     private EmailSender emailSender;
 
     @Autowired
-    public UserServiceImpl(ModelMapper mapper, AuthenticationManager authenticationManager, UserRepository userRepository, PasswordEncoder passwordEncoder, JwtService jwtService, ConfirmationTokenService tokenService, ConfirmationTokenRepository confirmationTokenRepository, EmailBuilder emailBuilder, EmailSender emailSender) {
+    public UserServiceImpl(ModelMapper mapper,
+                           AuthenticationManager authenticationManager,
+                           UserRepository userRepository,
+                           PasswordEncoder passwordEncoder,
+                           JwtTokenProvider jwtTokenProvider,
+                           ConfirmationTokenService tokenService,
+                           ConfirmationTokenRepository confirmationTokenRepository,
+                           EmailBuilder emailBuilder,
+                           EmailSender emailSender) {
         this.mapper = mapper;
         this.authenticationManager = authenticationManager;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
-        this.jwtService = jwtService;
+        this.jwtTokenProvider = jwtTokenProvider;
         this.tokenService = tokenService;
         this.confirmationTokenRepository = confirmationTokenRepository;
         this.emailBuilder = emailBuilder;
@@ -80,8 +88,11 @@ public class UserServiceImpl implements UserService {
         SecurityContextHolder.getContext().setAuthentication(authenticate);
         String username = authenticate.getName();
         User user = userRepository.findByUsername(username)
-                .orElseThrow(()->new UsernameNotFoundException("User not found"));
-        return jwtService.generateToken(user);
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        boolean isAuth = authenticate.isAuthenticated();
+        log.info("is Authenticated- {}", String.valueOf(isAuth));
+        log.info(user.getUsername());
+        return jwtTokenProvider.generateToken(authenticate);
     }
 
     @Override
@@ -98,7 +109,7 @@ public class UserServiceImpl implements UserService {
                 .email(registerRequest.getEmail())
                 .username(registerRequest.getUsername())
                 .password(passwordEncoder.encode(password))
-                .role(UserRole.ROLE_SUPERADMIN)
+                .role(UserRole.ROLE_ADMIN)
                 .lastLoginDate(new Date())
                 .isNotLocked(true)
                 .build();
@@ -148,16 +159,14 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponse getMyProfile() {
-      User user = getLoggedInUser();
-      return mapper.map(user, UserResponse.class);
+        User user = getLoggedInUser();
+        return mapper.map(user, UserResponse.class);
     }
 
     @Override
     public UserResponse updateUser(UserRequest registerRequest) {
         return null;
     }
-
-
 
 
     @Override
@@ -179,7 +188,8 @@ public class UserServiceImpl implements UserService {
     public User getLoggedInUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
-        return userRepository.findByUsername(username)
+        log.info("Username from authentication {}", username);
+        return userRepository.findByUsername("Anna")
                 .orElseThrow(() -> new UsernameNotFoundException(NO_USER_FOUND_BY_USERNAME + username));
     }
 
