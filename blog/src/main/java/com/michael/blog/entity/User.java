@@ -24,7 +24,12 @@ import java.util.List;
 @Table(name = "users")
 public class User implements UserDetails {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @SequenceGenerator(
+            name = "user_sequence",
+            sequenceName = "user_sequence",
+            allocationSize = 1
+    )
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_sequence")
     @Column(nullable = false, updatable = false)
     private Long id;
 
@@ -42,7 +47,6 @@ public class User implements UserDetails {
     @JsonIgnore
     private String password;
 
-   // @JsonIgnore
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, updatable = true)
     private UserRole role;

@@ -19,7 +19,12 @@ import java.time.LocalDateTime;
 @Table(name = "comments")
 public class Comment {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @SequenceGenerator(
+            name = "comment_sequence",
+            sequenceName = "comment_sequence",
+            allocationSize = 1
+    )
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "comment_sequence")
     private Long id;
     @Column(nullable = false)
     private String username;

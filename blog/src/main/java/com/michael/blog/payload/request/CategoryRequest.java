@@ -11,6 +11,6 @@ import lombok.*;
 public class CategoryRequest {
     @NotBlank(message = "Name should not be null or empty")
     private String name;
-   @NotBlank(message = "Description should not be null or empty")
+    @NotBlank(message = "Description should not be null or empty")
     private String description;
 }

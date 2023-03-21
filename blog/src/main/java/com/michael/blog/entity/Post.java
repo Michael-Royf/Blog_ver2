@@ -21,7 +21,12 @@ import java.util.Set;
 @Table(name = "posts", uniqueConstraints = {@UniqueConstraint(columnNames = "title")})
 public class Post {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @SequenceGenerator(
+            name = "post_sequence",
+            sequenceName = "post_sequence",
+            allocationSize = 1
+    )
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "post_sequence")
     @Column(name = "post_id", updatable = false)
     private Long id;
 
