@@ -7,6 +7,9 @@ import com.michael.blog.payload.request.UserRequest;
 import com.michael.blog.payload.response.JwtAuthResponse;
 import com.michael.blog.payload.response.UserResponse;
 import com.michael.blog.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -15,20 +18,34 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/")
+@Tag(
+        name = "CRUD REST APIs for User Resource"
+)
 public class UserController {
     @Autowired
     private UserService userService;
 
-
-    @PostMapping(value = {"/login", "/signin"})
-    public ResponseEntity<JwtAuthResponse> login(@RequestBody LoginRequest loginRequest) {
+    @Operation(
+            summary = "Login Rest API",
+            description = "Login REST API is used to login")
+    @ApiResponse(
+            responseCode = "200",
+            description = "Http Status 200 SUCCESS")
+    @PostMapping("/login")
+    public ResponseEntity<JwtAuthResponse> login(@RequestBody @Valid LoginRequest loginRequest) {
         String token = userService.login(loginRequest);
         JwtAuthResponse jwtAuthResponse = new JwtAuthResponse();
         jwtAuthResponse.setAccessToken(token);
         return ResponseEntity.ok(jwtAuthResponse);
     }
 
-    @PostMapping(value = {"/register", "/signup"})
+    @Operation(
+            summary = "Create User Rest API",
+            description = "Create User REST API is used to save user into database")
+    @ApiResponse(
+            responseCode = "201",
+            description = "Http Status 201 CREATED")
+    @PostMapping("/register")
     public ResponseEntity<String> register(@RequestBody @Valid UserRequest registerRequest) {
         return new ResponseEntity<>(userService.register(registerRequest), HttpStatus.CREATED);
     }
@@ -39,37 +56,70 @@ public class UserController {
         return new ResponseEntity<>(userService.confirmToken(token), HttpStatus.OK);
     }
 
-
+    @Operation(
+            summary = "Get User Profile By Id  Rest API",
+            description = "Get User Profile By Id REST API is used to fetch  user profile by Id from the database")
+    @ApiResponse(
+            responseCode = "200",
+            description = "Http Status 200 SUCCESS")
     @GetMapping("/user/{userId}")
     public ResponseEntity<UserResponse> getUserProfile(@PathVariable Long userId) {
         return new ResponseEntity<>(userService.getUserById(userId), HttpStatus.OK);
     }
 
+    @Operation(
+            summary = "Get User Profile  Rest API",
+            description = "Get User Profile  REST API is used to fetch  user profile  from the database")
+    @ApiResponse(
+            responseCode = "200",
+            description = "Http Status 200 SUCCESS")
     @GetMapping("/user/myprofile")
     public ResponseEntity<UserResponse> getMyProfile() {
         return new ResponseEntity<>(userService.getMyProfile(), HttpStatus.OK);
     }
 
-
-    @PostMapping("/forgot-password")
-    public ResponseEntity<String> forgotPassword(@RequestBody @Valid EmailRequest email) {
-        return new ResponseEntity<>(userService.forgotPassword(email.getEmail()), HttpStatus.OK);
-    }
-
+    @Operation(
+            summary = "Delete User Rest API",
+            description = "Delete User REST API is used to delete User profile")
+    @ApiResponse(
+            responseCode = "200",
+            description = "Http Status 200 SUCCESS")
     @DeleteMapping("/user")
     public ResponseEntity<String> deleteUser() {
         return new ResponseEntity<>(userService.deleteUser(), HttpStatus.OK);
     }
 
-
+    @Operation(
+            summary = "Deactivate User Rest API",
+            description = "Deactivate User REST API is used to deactivate User profile")
+    @ApiResponse(
+            responseCode = "200",
+            description = "Http Status 200 SUCCESS")
     @GetMapping("user/deactivateprofile")
     public ResponseEntity<String> deactivateProfile() {
         return new ResponseEntity<>(userService.deactivateProfile(), HttpStatus.OK);
     }
 
+    @Operation(
+            summary = "Change Password Rest API",
+            description = "Change Password REST API is used to change password and send it to email")
+    @ApiResponse(
+            responseCode = "200",
+            description = "Http Status 200 SUCCESS")
     @PostMapping("/user/changepassword")
-    public ResponseEntity<String> changePassword(@RequestBody PasswordRequest passwordRequest) {
+    public ResponseEntity<String> changePassword(@RequestBody @Valid PasswordRequest passwordRequest) {
         return new ResponseEntity<>(userService.changePassword(passwordRequest.getOldPassword(),
                 passwordRequest.getNewPassword()), HttpStatus.OK);
+    }
+
+    @Operation(
+            summary = "Generate New Password(if the user has forgotten their password)  Rest API",
+            description = "Generate New Password REST API is used to generate a new password and send it to email if the user has forgotten their password")
+    @ApiResponse(
+            responseCode = "200",
+            description = "Http Status 200 SUCCESS")
+    @PostMapping("/forgot-password")
+    public ResponseEntity<String> forgotPassword(@RequestBody @Valid EmailRequest email) {
+        return new ResponseEntity<>(userService.forgotPassword(email.getEmail()), HttpStatus.OK);
     }
 }

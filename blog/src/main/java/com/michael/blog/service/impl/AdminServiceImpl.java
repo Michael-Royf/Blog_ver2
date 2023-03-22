@@ -33,7 +33,7 @@ public class AdminServiceImpl implements AdminService {
     @Override
     public String deleteUser(Long userId) {
         User user = getUserFromDbById(userId);
-        if (!user.getRole().name().equals(UserRole.ROlE_USER.name())) {
+        if (!user.getRole().name().equals(UserRole.ROLE_USER.name())) {
             throw new RuntimeException("You cannot delete this account");
         }
         userRepository.delete(user);
@@ -43,7 +43,7 @@ public class AdminServiceImpl implements AdminService {
     @Override
     public String activationUserProfile(Long userId) {
         User user = getUserFromDbById(userId);
-        if (!user.getRole().name().equals(UserRole.ROlE_USER.name())) {
+        if (!user.getRole().name().equals(UserRole.ROLE_USER.name())) {
             throw new RuntimeException("You cannot activation this account");
         }
         userRepository.enableUser(user.getEmail());
@@ -53,7 +53,7 @@ public class AdminServiceImpl implements AdminService {
     @Override
     public String deactivationUserProfile(Long userId) {
         User user = getUserFromDbById(userId);
-        if (!user.getRole().name().equals(UserRole.ROlE_USER.name())) {
+        if (!user.getRole().name().equals(UserRole.ROLE_USER.name())) {
             throw new RuntimeException("You cannot deactivation this account");
         }
         userRepository.disabledUser(user.getEmail());
@@ -85,7 +85,7 @@ public class AdminServiceImpl implements AdminService {
     @Override
     public String changeAdminRoleToUser(Long userId) {
         User user = getUserFromDbById(userId);
-        user.setRole(UserRole.ROlE_USER);
+        user.setRole(UserRole.ROLE_USER);
         userRepository.save(user);
         return String.format("The account with the username %s is assigned the role of the User", user.getUsername());
     }

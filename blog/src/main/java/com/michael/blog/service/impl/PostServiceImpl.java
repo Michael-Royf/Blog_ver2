@@ -83,7 +83,6 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public List<PostResponse> getMyPosts() {
-
         List<Post> posts = postRepository.getAllByUserId(userService.getLoggedInUser().getId());
         return posts.stream()
                 .map(post -> mapper.map(post, PostResponse.class))

@@ -31,7 +31,7 @@ class UserRepositoryTest {
               // .isActive(false)
                // .isNotLocked(true)
                 .password("password")
-                .role(UserRole.ROlE_USER)
+                .role(UserRole.ROLE_USER)
                 .build();
     }
 

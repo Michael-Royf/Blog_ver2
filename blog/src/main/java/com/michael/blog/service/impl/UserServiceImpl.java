@@ -109,7 +109,7 @@ public class UserServiceImpl implements UserService {
                 .email(registerRequest.getEmail())
                 .username(registerRequest.getUsername())
                 .password(passwordEncoder.encode(password))
-                .role(UserRole.ROLE_ADMIN)
+                .role(UserRole.ROLE_USER)
                 .lastLoginDate(new Date())
                 .isNotLocked(true)
                 .build();
@@ -188,8 +188,7 @@ public class UserServiceImpl implements UserService {
     public User getLoggedInUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
-        log.info("Username from authentication {}", username);
-        return userRepository.findByUsername("Anna")
+        return userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException(NO_USER_FOUND_BY_USERNAME + username));
     }
 

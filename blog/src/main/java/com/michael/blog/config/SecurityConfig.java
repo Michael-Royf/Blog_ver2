@@ -3,6 +3,8 @@ package com.michael.blog.config;
 
 import com.michael.blog.security.JwtAuthenticationEntryPoint;
 import com.michael.blog.security.JwtAuthenticationFilter;
+import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
+import io.swagger.v3.oas.annotations.security.SecurityScheme;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,10 +17,18 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import static com.michael.blog.constants.SecurityConstant.PUBLIC_URLS_SWAGGER;
+
 @Configuration
 @EnableWebSecurity
 //@EnableMethodSecurity
 @EnableMethodSecurity(prePostEnabled = true, jsr250Enabled = true, securedEnabled = true)
+@SecurityScheme(
+        name = "Bear Authentication",
+        type = SecuritySchemeType.HTTP,
+        bearerFormat = "JWT",
+        scheme = "bearer"
+)
 public class SecurityConfig {
 
 
@@ -41,6 +51,9 @@ public class SecurityConfig {
           http.csrf().disable()
                 .authorizeHttpRequests(authorize ->
                         authorize
+                               .requestMatchers(PUBLIC_URLS_SWAGGER).permitAll()
+                                .requestMatchers("/swagger-ui/**").permitAll()
+                                .requestMatchers("/v3/api-docs/**").permitAll()
                                 .requestMatchers(HttpMethod.POST, "/api/v1/login").permitAll()
                                 .requestMatchers(HttpMethod.POST, "/api/v1/signin").permitAll()
                                 .requestMatchers(HttpMethod.POST, "/api/v1/register").permitAll()
