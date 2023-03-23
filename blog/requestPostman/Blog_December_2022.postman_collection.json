@@ -1,0 +1,697 @@
+{
+	"info": {
+		"_postman_id": "b963aaf8-700b-4fc5-bf25-97c56a10802b",
+		"name": "Blog_December_2022",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "16410562"
+	},
+	"item": [
+		{
+			"name": "user",
+			"item": [
+				{
+					"name": "get user",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/user/1",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"user",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "register",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n\"name\":\"Dasha\",\r\n\"username\":\"Dasha\",\r\n\"email\":\"dasha@gmail.com\",\r\n\"password\":\"password\"\r\n}\r\n   \r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/signup",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"signup"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "login",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"usernameOrEmail\":\"michael@gmail.com\",\r\n    \"password\":\"password\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/login",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "change password",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"oldPassword\":\"3zY9uYjsKx\",\r\n    \"newPassword\":\"password\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/user/changepassword",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"user",
+								"changepassword"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "forgot password",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\":\"michael@gmail.com\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/forgot-password",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"forgot-password"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "delete my user profile",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/user/1",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"user",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "deactivate profile",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/user/deactivateprofile",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"user",
+								"deactivateprofile"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get my profile",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJTdXBlciIsImlhdCI6MTY3MjkzMTUxMiwiZXhwIjoxNjcyOTMyOTUyfQ.3cISJYYpzy1eLfrd0ETqtKYqVWAtT7jq8hL6Zfo-IDoI1eanV3u3wMoq7gTNpmFMzOuAFaqJjvfVPGK8K90AzQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/user/myprofile",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"user",
+								"myprofile"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Post",
+			"item": [
+				{
+					"name": "create new Post",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n\"title\": \"title1\",\r\n\"description\": \"description\",\r\n\"content\":\"content\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/post",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"post"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get all posts",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "get posts by id",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "delete Post by id",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/post/2",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"post",
+								"2"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "update post by id",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/post/6",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"post",
+								"6"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get only my Posts",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "get post by category",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/post/1",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"post",
+								"1"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Comment",
+			"item": [
+				{
+					"name": "create Comment",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n\"name\":\"Michael\",\r\n\"email\":\"michael@gmail.com\",\r\n\"body\":\"Hello, my name is Michael!\"\r\n}\r\n\r\n\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/post/1/comment",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"post",
+								"1",
+								"comment"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get Comment by post ID",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "get comment by post id and comment id",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/post/2/comment",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"post",
+								"2",
+								"comment"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "update comment",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "Delete comment",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "admin",
+			"item": [
+				{
+					"name": "delete Post",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/admin/post/delete/1",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"admin",
+								"post",
+								"delete",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "delete comment",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJNaWNoYWVsIFJveWYsIExMQyIsImF1ZCI6IlVzZXIgTWFuYWdlbWVudCBCbG9nIiwic3ViIjoiQWRtaW4iLCJpYXQiOjE2NzI2NTk0MTAsImV4cCI6MTY3MzA5MTQxMH0.h4nMWL-3Q2laqSlbQkYq3I0Dj8PZ1MLy-P-KABxmc_B-D_RHzM1tou5-xEJNFqPgdy12Aj_L6c0XmScLr-dWtA",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/admin/comment/delete/1",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"admin",
+								"comment",
+								"delete",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "delete user",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJNaWNoYWVsIiwiaWF0IjoxNjcyODU4NTI1LCJleHAiOjE2NzI4NTk5NjV9.UHeIDXB1ZMdnPWJvJ2Fb2QVgpCN2IJBzta19dv_kUz1WALu4h873U621ZKwTQNc1UwGuO_h2q5l6pU1P5a3_Jw",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/admin/deleteuser/1",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"admin",
+								"deleteuser",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "desable user profile",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJEYXNoYSIsImlhdCI6MTY3Mjg1ODY1NCwiZXhwIjoxNjcyODYwMDk0fQ.25mhNvmb6lkXY_viuAzpbco0moovyCAlWGt0-tATylB0bmWjWm5pr2ae7XOgJopDmHzpaAmauTjdHfgAsGKIpA",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/admin/disableuser/1",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"admin",
+								"disableuser",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "enable user prifile",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJEYXNoYSIsImlhdCI6MTY3Mjg1ODY1NCwiZXhwIjoxNjcyODYwMDk0fQ.25mhNvmb6lkXY_viuAzpbco0moovyCAlWGt0-tATylB0bmWjWm5pr2ae7XOgJopDmHzpaAmauTjdHfgAsGKIpA",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/admin/enableuser/1",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"admin",
+								"enableuser",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "change role to admin",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJNaWNoYWVsIiwiaWF0IjoxNjcyOTI4MzE0LCJleHAiOjE2NzI5Mjk3NTR9.zIGADQjyjewgg40VDiWyQ_kOgqg_fYj__BIknRHFf4mR7DWOsUqjWiya6wZqfda8TeUd30ZGxff-UdNDttjeWw",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/superadmin/change_role_to_admin/2",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"superadmin",
+								"change_role_to_admin",
+								"2"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "change role to user",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "category",
+			"item": [
+				{
+					"name": "add new category",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\":\"Java\",\r\n    \"description\":\"Java Category\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/category",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"category"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get category by id",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJNaWNoYWVsIiwiaWF0IjoxNjcyOTEyMzYwLCJleHAiOjE2NzI5MTM4MDB9.OEkuPQKxBJiBZzuGKjzhiFHKt_BO9UbXMEVBdOF0Lriifr1v0Te7p2wkjEixjiSoAyi_L2u-JUiKDXVMo-JWSw",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/category/2",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"category",
+								"2"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get all categories",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJNaWNoYWVsIiwiaWF0IjoxNjcyOTEyMzYwLCJleHAiOjE2NzI5MTM4MDB9.OEkuPQKxBJiBZzuGKjzhiFHKt_BO9UbXMEVBdOF0Lriifr1v0Te7p2wkjEixjiSoAyi_L2u-JUiKDXVMo-JWSw",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/category",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"category"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "update category by id",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJNaWNoYWVsIiwiaWF0IjoxNjcyOTE0MDU5LCJleHAiOjE2NzI5MTU0OTl9.30imdo0Opnkbx8LMYI6xPppSUnl7dRtl7u5dDKjJPYBN7_4yNiTg0OtSrLTLxVDTM6aKDu6--Cm6Ns_xHsvjIA",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\":\"new Java\",\r\n    \"description\":\"Spring Boot description\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/category/1",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"category",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "delete category by id",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
