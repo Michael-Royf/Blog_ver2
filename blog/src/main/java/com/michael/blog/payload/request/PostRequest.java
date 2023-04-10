@@ -1,6 +1,5 @@
 package com.michael.blog.payload.request;
 
-import jakarta.persistence.Lob;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.*;
@@ -19,6 +18,6 @@ public class PostRequest {
     private String description;
     @NotBlank(message = "Content should not be null or empty")
     private String content;
-   @NotBlank(message = "Category Id should not be null or empty")
+   // @NotBlank(message = "Category Id should not be null or empty")
     private Long categoryId;
 }

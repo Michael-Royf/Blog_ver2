@@ -12,7 +12,6 @@ import com.michael.blog.service.CommentService;
 import com.michael.blog.service.UserService;
 import jakarta.persistence.EntityNotFoundException;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -21,13 +20,11 @@ import java.util.stream.Collectors;
 @Service
 public class CommentServiceImpl implements CommentService {
 
+    private final CommentRepository commentRepository;
+    private final PostRepository postRepository;
+    private final ModelMapper mapper;
+    private final UserService userService;
 
-    private CommentRepository commentRepository;
-    private PostRepository postRepository;
-    private ModelMapper mapper;
-    private UserService userService;
-
-    @Autowired
     public CommentServiceImpl(CommentRepository commentRepository,
                               PostRepository postRepository,
                               ModelMapper mapper,
@@ -73,8 +70,8 @@ public class CommentServiceImpl implements CommentService {
         Post post = getPostFromDB(postId);
         Comment comment = getCommentFromDB(commentId);
         isCommentBelongPost(post, comment);
-        if (!comment.getUser().getId().equals(userService.getLoggedInUser().getId())){
-            throw  new RuntimeException("This comment doesn't belong to you, you can't update it!");
+        if (!comment.getUser().getId().equals(userService.getLoggedInUser().getId())) {
+            throw new RuntimeException("This comment doesn't belong to you, you can't update it!");
         }
         comment.setBody(commentRequest.getBody());
         comment = commentRepository.save(comment);
@@ -87,8 +84,8 @@ public class CommentServiceImpl implements CommentService {
         Post post = getPostFromDB(postId);
         Comment comment = getCommentFromDB(commentId);
         isCommentBelongPost(post, comment);
-        if (!comment.getUser().getId().equals(userService.getLoggedInUser().getId())){
-            throw  new RuntimeException("This comment doesn't belong to you, you can't delete it!");
+        if (!comment.getUser().getId().equals(userService.getLoggedInUser().getId())) {
+            throw new RuntimeException("This comment doesn't belong to you, you can't delete it!");
         }
         commentRepository.delete(comment);
         return new MessageResponse(String.format("Comment with id: %s was deleted", commentId));

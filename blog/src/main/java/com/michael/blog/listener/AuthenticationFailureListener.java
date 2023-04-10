@@ -1,7 +1,6 @@
 package com.michael.blog.listener;
 
 import com.michael.blog.service.impl.LoginAttemptService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.security.authentication.event.AuthenticationFailureBadCredentialsEvent;
 import org.springframework.stereotype.Component;
@@ -11,9 +10,8 @@ import java.util.concurrent.ExecutionException;
 @Component
 public class AuthenticationFailureListener {
 
-    private LoginAttemptService loginAttemptService;
+    private final LoginAttemptService loginAttemptService;
 
-    @Autowired
     public AuthenticationFailureListener(LoginAttemptService loginAttemptService) {
         this.loginAttemptService = loginAttemptService;
     }

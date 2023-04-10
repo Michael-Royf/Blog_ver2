@@ -11,17 +11,15 @@ import com.michael.blog.repository.PostRepository;
 import com.michael.blog.repository.UserRepository;
 import com.michael.blog.service.AdminService;
 import jakarta.persistence.EntityNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 public class AdminServiceImpl implements AdminService {
 
-    private PostRepository postRepository;
-    private UserRepository userRepository;
-    private CommentRepository commentRepository;
+    private final PostRepository postRepository;
+    private final UserRepository userRepository;
+    private final CommentRepository commentRepository;
 
-    @Autowired
     public AdminServiceImpl(PostRepository postRepository,
                             UserRepository userRepository,
                             CommentRepository commentRepository) {

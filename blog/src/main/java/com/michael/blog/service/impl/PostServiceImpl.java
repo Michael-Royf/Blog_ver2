@@ -13,7 +13,6 @@ import com.michael.blog.service.PostService;
 import com.michael.blog.service.UserService;
 import jakarta.persistence.EntityNotFoundException;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -26,12 +25,11 @@ import java.util.stream.Collectors;
 @Service
 public class PostServiceImpl implements PostService {
 
-    private PostRepository postRepository;
-    private ModelMapper mapper;
-    private UserService userService;
-    private CategoryRepository categoryRepository;
+    private final PostRepository postRepository;
+    private final ModelMapper mapper;
+    private final UserService userService;
+    private final CategoryRepository categoryRepository;
 
-    @Autowired
     public PostServiceImpl(PostRepository postRepository,
                            ModelMapper mapper,
                            UserService userService,

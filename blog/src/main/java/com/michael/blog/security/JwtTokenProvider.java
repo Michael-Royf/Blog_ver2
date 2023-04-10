@@ -17,18 +17,47 @@ public class JwtTokenProvider {
     @Value("${app.jwt-secret}")
     private String jwtSecret;
 
+    public static final long EXPIRATION_TIME_FOR_ACCESS_TOKEN = 180_000; // 3 min
+    public static final long EXPIRATION_TIME_FOR_REFRESH_TOKEN = 3_600_000; // 60 min
+    //604_800_000 7 days
 
-    // generate JWT token
-    public String generateToken(Authentication authentication) {
+    // generate access JWT token
+    public String generateAccessToken(String username) {
+        String token = generateRefreshToken(username, EXPIRATION_TIME_FOR_ACCESS_TOKEN);
+    //    String token = generateRefreshToken( username, EXPIRATION_TIME_FOR_REFRESH_TOKEN);
+        return token;
+    }
+
+    // generate refresh JWT token
+    public String generateRefreshToken(String username) {
+       // String token = generateToken(authentication, EXPIRATION_TIME_FOR_REFRESH_TOKEN);
+        String token = generateRefreshToken( username, EXPIRATION_TIME_FOR_REFRESH_TOKEN);
+        return token;
+    }
+
+    // generate  JWT token
+    public String generateToken(Authentication authentication, long expirationTime) {
         String username = authentication.getName();
         String token = Jwts.builder()
                 .setSubject(username)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 24))
+                .setExpiration(new Date(System.currentTimeMillis() + expirationTime))
                 .signWith(key())
                 .compact();
         return token;
     }
+
+    public String generateRefreshToken(String username, long expirationTime) {
+
+        String token = Jwts.builder()
+                .setSubject(username)
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + expirationTime))
+                .signWith(key())
+                .compact();
+        return token;
+    }
+
 
     private Key key() {
         return Keys.hmacShaKeyFor(
@@ -66,3 +95,16 @@ public class JwtTokenProvider {
         }
     }
 }
+
+
+// generate access JWT token
+//    public String generateAccessToken(Authentication authentication) {
+//        String username = authentication.getName();
+//        String token = Jwts.builder()
+//                .setSubject(username)
+//                .setIssuedAt(new Date())
+//                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME_FOR_ACCESS_TOKEN))
+//                .signWith(key())
+//                .compact();
+//        return token;
+//    }

@@ -5,7 +5,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,12 +12,14 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1")
-@Tag(
-        name = "REST APIs for Admin Resource"
-)
+@Tag(name = "REST APIs for Admin Resource")
 public class AdminController {
-    @Autowired
-    private AdminServiceImpl adminService;
+
+    private final AdminServiceImpl adminService;
+
+    public AdminController(AdminServiceImpl adminService) {
+        this.adminService = adminService;
+    }
 
     @SecurityRequirement(
             name = "Bear Authentication"

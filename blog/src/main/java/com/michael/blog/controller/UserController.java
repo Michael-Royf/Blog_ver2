@@ -10,20 +10,23 @@ import com.michael.blog.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/")
-@Tag(
-        name = "CRUD REST APIs for User Resource"
-)
+@Tag(name = "CRUD REST APIs for User Resource")
 public class UserController {
-    @Autowired
-    private UserService userService;
+
+    private final UserService userService;
+
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
 
     @Operation(
             summary = "Login Rest API",
@@ -33,11 +36,15 @@ public class UserController {
             description = "Http Status 200 SUCCESS")
     @PostMapping("/login")
     public ResponseEntity<JwtAuthResponse> login(@RequestBody @Valid LoginRequest loginRequest) {
-        String token = userService.login(loginRequest);
-        JwtAuthResponse jwtAuthResponse = new JwtAuthResponse();
-        jwtAuthResponse.setAccessToken(token);
-        return ResponseEntity.ok(jwtAuthResponse);
+        return ResponseEntity.ok(userService.login(loginRequest));
     }
+
+    @PostMapping("/refesh_token")
+    public JwtAuthResponse refreshToken(HttpServletRequest request,
+                                        HttpServletResponse response) {
+        return userService.refreshToken(request, response);
+    }
+
 
     @Operation(
             summary = "Create User Rest API",

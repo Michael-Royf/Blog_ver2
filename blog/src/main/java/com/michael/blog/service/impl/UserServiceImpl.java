@@ -2,30 +2,36 @@ package com.michael.blog.service.impl;
 
 import com.michael.blog.constants.UserConstant;
 import com.michael.blog.entity.ConfirmationToken;
+import com.michael.blog.entity.Token;
 import com.michael.blog.entity.User;
+import com.michael.blog.entity.enumeration.TokenType;
 import com.michael.blog.entity.enumeration.UserRole;
 import com.michael.blog.exception.payload.EmailExistException;
 import com.michael.blog.exception.payload.UserNotFoundException;
 import com.michael.blog.exception.payload.UsernameExistException;
 import com.michael.blog.payload.request.LoginRequest;
 import com.michael.blog.payload.request.UserRequest;
+import com.michael.blog.payload.response.JwtAuthResponse;
 import com.michael.blog.payload.response.UserResponse;
 import com.michael.blog.repository.ConfirmationTokenRepository;
+import com.michael.blog.repository.TokenRepository;
 import com.michael.blog.repository.UserRepository;
 import com.michael.blog.security.JwtTokenProvider;
 import com.michael.blog.service.ConfirmationTokenService;
 import com.michael.blog.service.EmailSender;
 import com.michael.blog.service.UserService;
 import com.michael.blog.utility.EmailBuilder;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -33,11 +39,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import static com.michael.blog.constants.SecurityConstant.VERIFICATION_TOKEN_EXPIRED;
-import static com.michael.blog.constants.SecurityConstant.VERIFICATION_TOKEN_NOT_FOUND;
+import static com.michael.blog.constants.SecurityConstant.*;
 import static com.michael.blog.constants.UserConstant.*;
 
 @Service
@@ -46,41 +52,44 @@ public class UserServiceImpl implements UserService {
 
     public static final String LINK_FOR_CONFIRMATION = "http://localhost:8080/api/v1/registration/confirm?token=";
 
-    private ModelMapper mapper;
-    private AuthenticationManager authenticationManager;
-    private UserRepository userRepository;
-    private PasswordEncoder passwordEncoder;
-    private JwtTokenProvider jwtTokenProvider;
-    //  private JwtService jwtService;
-    private ConfirmationTokenService tokenService;
-    private ConfirmationTokenRepository confirmationTokenRepository;
-    private EmailBuilder emailBuilder;
-    private EmailSender emailSender;
+    private final ModelMapper mapper;
+    private final AuthenticationManager authenticationManager;
+    private final UserRepository userRepository;
+    private final TokenRepository tokenRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final ConfirmationTokenService tokenService;
+    private final ConfirmationTokenRepository confirmationTokenRepository;
+    private final EmailBuilder emailBuilder;
+    private final EmailSender emailSender;
+    private final UserDetailsService userDetailsService;
 
-    @Autowired
     public UserServiceImpl(ModelMapper mapper,
                            AuthenticationManager authenticationManager,
                            UserRepository userRepository,
+                           TokenRepository tokenRepository,
                            PasswordEncoder passwordEncoder,
                            JwtTokenProvider jwtTokenProvider,
                            ConfirmationTokenService tokenService,
                            ConfirmationTokenRepository confirmationTokenRepository,
                            EmailBuilder emailBuilder,
-                           EmailSender emailSender) {
+                           EmailSender emailSender,
+                           UserDetailsService userDetailsService) {
         this.mapper = mapper;
         this.authenticationManager = authenticationManager;
         this.userRepository = userRepository;
+        this.tokenRepository = tokenRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtTokenProvider = jwtTokenProvider;
         this.tokenService = tokenService;
         this.confirmationTokenRepository = confirmationTokenRepository;
         this.emailBuilder = emailBuilder;
         this.emailSender = emailSender;
+        this.userDetailsService = userDetailsService;
     }
 
-
     @Override
-    public String login(LoginRequest loginRequest) {
+    public JwtAuthResponse login(LoginRequest loginRequest) {
         Authentication authenticate = authenticationManager
                 .authenticate(new UsernamePasswordAuthenticationToken(
                         loginRequest.getUsername(),
@@ -88,11 +97,56 @@ public class UserServiceImpl implements UserService {
         SecurityContextHolder.getContext().setAuthentication(authenticate);
         String username = authenticate.getName();
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-        boolean isAuth = authenticate.isAuthenticated();
-        log.info("is Authenticated- {}", String.valueOf(isAuth));
-        log.info(user.getUsername());
-        return jwtTokenProvider.generateToken(authenticate);
+                .orElseThrow(() -> new UsernameNotFoundException(NO_USER_FOUND_BY_USERNAME + username));
+        String jwtAccessToken = jwtTokenProvider.generateAccessToken(username);
+        String jwtRefreshToken = jwtTokenProvider.generateRefreshToken(username);
+
+        Token token = createTokenForDB(user, jwtAccessToken);
+        revokeAllUserTokens(user);
+        tokenRepository.save(token);
+        return JwtAuthResponse.builder()
+                .accessToken(jwtAccessToken)
+                .refreshToken(jwtRefreshToken)
+                .build();
+    }
+
+    @Override
+    public JwtAuthResponse refreshToken(HttpServletRequest request, HttpServletResponse response) {
+        String refreshToken = getTokenFromRequest(request);
+
+        if (org.springframework.util.StringUtils.hasText(refreshToken)
+                && jwtTokenProvider.validateToken(refreshToken)) {
+            String username = jwtTokenProvider.getUsername(refreshToken);
+            User user = findUserByUsername(username)
+                    .orElseThrow(() -> new UsernameNotFoundException(NO_USER_FOUND_BY_USERNAME + username));
+
+            //   UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+
+//            Authentication authenticate = authenticationManager
+//                    .authenticate(new UsernamePasswordAuthenticationToken(
+//                            username,
+//                            user.getPassword()));
+
+            String accessToken = jwtTokenProvider.generateAccessToken(username);
+            revokeAllUserTokens(user);
+            Token token = createTokenForDB(user, accessToken);
+            tokenRepository.save(token);
+            return JwtAuthResponse.builder()
+                    .accessToken(accessToken)
+                    .refreshToken(refreshToken)
+                    .build();
+        }
+        throw new RuntimeException("Refresh token not found or expired");
+        //   return null;
+    }
+
+
+    private String getTokenFromRequest(HttpServletRequest request) {
+        String bearerToken = request.getHeader("Authorization");
+        if (org.springframework.util.StringUtils.hasText(bearerToken) && bearerToken.startsWith(TOKEN_PREFIX)) {
+            return bearerToken.substring(7, bearerToken.length());
+        }
+        return null;
     }
 
     @Override
@@ -109,7 +163,7 @@ public class UserServiceImpl implements UserService {
                 .email(registerRequest.getEmail())
                 .username(registerRequest.getUsername())
                 .password(passwordEncoder.encode(password))
-                .role(UserRole.ROLE_USER)
+                .role(UserRole.ROLE_ADMIN)
                 .lastLoginDate(new Date())
                 .isNotLocked(true)
                 .build();
@@ -258,6 +312,29 @@ public class UserServiceImpl implements UserService {
 
     private String generatePassword() {
         return RandomStringUtils.randomAlphanumeric(10);
+    }
+
+    private void revokeAllUserTokens(User user) {
+        List<Token> validUserTokens = tokenRepository.findAllValidTokensByUser(user.getId());
+        if (validUserTokens.isEmpty()) {
+            return;
+        }
+        validUserTokens.forEach(t -> {
+            t.setExpired(true);
+            t.setRevoked(true);
+        });
+        tokenRepository.saveAll(validUserTokens);
+    }
+
+
+    private Token createTokenForDB(User user, String accessToken) {
+        return Token.builder()
+                .user(user)
+                .token(accessToken)
+                .tokenType(TokenType.BEARER)
+                .expired(false)
+                .revoked(false)
+                .build();
     }
 
 }

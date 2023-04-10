@@ -4,7 +4,6 @@ import com.michael.blog.entity.User;
 import com.michael.blog.repository.UserRepository;
 import com.michael.blog.service.impl.LoginAttemptService;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -20,12 +19,15 @@ import java.util.Date;
 
 @Configuration
 public class ApplicationConfig {
-    @Autowired
-    private UserRepository userRepository;
 
+    private final UserRepository userRepository;
+    private final LoginAttemptService loginAttemptService;
 
-    @Autowired
-    private LoginAttemptService loginAttemptService;
+    public ApplicationConfig(UserRepository userRepository,
+                             LoginAttemptService loginAttemptService) {
+        this.userRepository = userRepository;
+        this.loginAttemptService = loginAttemptService;
+    }
 
     @Bean
     public ModelMapper modelMapper() {
@@ -63,7 +65,7 @@ public class ApplicationConfig {
         };
     }
 
-    private void validateLoginAttempt(User user)  {
+    private void validateLoginAttempt(User user) {
         if (user.getIsNotLocked()) {
             if (loginAttemptService.hasExceededMaxAttempts(user.getUsername())) {
                 user.setIsNotLocked(false);

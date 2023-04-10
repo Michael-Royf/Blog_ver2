@@ -51,6 +51,9 @@ public class User implements UserDetails {
     @Column(nullable = false, updatable = true)
     private UserRole role;
 
+    @OneToMany(mappedBy = "user")
+    private List<Token> tokens;
+
     @CreationTimestamp
     @Column(updatable = false, name = "registration_date")
     private LocalDateTime registrationDate;

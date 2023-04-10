@@ -1,5 +1,6 @@
 package com.michael.blog.payload.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 
 @AllArgsConstructor
@@ -8,6 +9,9 @@ import lombok.*;
 @Setter
 @Builder
 public class JwtAuthResponse {
+    @JsonProperty("access_token")
     private String accessToken;
-    private String tokenType = "Bearer";
+    @JsonProperty("refresh_token")
+    private String refreshToken;
+//    private String tokenType = "Bearer";
 }
