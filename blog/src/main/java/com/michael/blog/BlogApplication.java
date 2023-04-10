@@ -13,7 +13,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
         info = @Info(
                 title = "Spring Boot Blog App REST APIs",
                 description = "Spring Boot Blog App REST APIs Documentation",
-                version = "v1.0",
+                version = "v2.0",
                 contact = @Contact(
                         name = "Michael Royf",
                         email = "michael.royf87@gmail.com",
