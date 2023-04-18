@@ -112,4 +112,10 @@ public class PostController {
         return new ResponseEntity<>(postService.getPostsByCategory(categoryId), OK);
     }
 
+    @PostMapping("/post/like/{postId}")
+    public ResponseEntity<PostResponse> likePost(@PathVariable Long postId) {
+        return new ResponseEntity<>(postService.likePost(postId), OK);
+    }
+
+
 }

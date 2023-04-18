@@ -3,6 +3,7 @@ package com.michael.blog.service.impl;
 import com.michael.blog.entity.Category;
 import com.michael.blog.entity.Post;
 import com.michael.blog.entity.User;
+import com.michael.blog.exception.payload.PostNotFoundException;
 import com.michael.blog.payload.request.PostRequest;
 import com.michael.blog.payload.response.MessageResponse;
 import com.michael.blog.payload.response.PostResponse;
@@ -20,6 +21,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -51,6 +53,7 @@ public class PostServiceImpl implements PostService {
                 .content(postRequest.getContent())
                 .user(user)
                 .category(category)
+                .likes(0)
                 .build();
         post = postRepository.save(post);
         return mapper.map(post, PostResponse.class);
@@ -96,9 +99,7 @@ public class PostServiceImpl implements PostService {
     @Override
     public MessageResponse deletePost(Long postId) {
         Post post = getPostFromDB(postId);
-        if (!post.getUser().getId().equals(userService.getLoggedInUser().getId())) {
-            throw new RuntimeException("This post doesn't belong to you, you can't delete it!");
-        }
+        isPostBelongUser(post);
         postRepository.delete(post);
         return new MessageResponse(String.format("Post with id: %s was deleted", postId));
     }
@@ -106,9 +107,8 @@ public class PostServiceImpl implements PostService {
     @Override
     public PostResponse updatePost(Long postId, PostRequest postRequest) {
         Post post = getPostFromDB(postId);
-        if (!post.getUser().getId().equals(userService.getLoggedInUser().getId())) {
-            throw new RuntimeException("This post doesn't belong to you, you can't update it!");
-        }
+        isPostBelongUser(post);
+
         Category category = getCategoryFromDBById(postRequest.getCategoryId());
         post.setTitle(postRequest.getTitle());
         post.setDescription(postRequest.getDescription());
@@ -126,10 +126,38 @@ public class PostServiceImpl implements PostService {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public void isPostBelongUser(Post post) {
+        if (!post.getUser().getId().equals(userService.getLoggedInUser().getId())) {
+            throw new RuntimeException("This post doesn't belong to you, you can't delete it!");
+        }
+    }
+
+    @Override
+    public PostResponse likePost(Long postId) {
+        User user = userService.getLoggedInUser();
+        Post post = getPostFromDB(postId);
+
+        Optional<String> userLiked = post.getLikedUsers()
+                .stream()
+                .filter(u -> u.equals(user.getUsername()))
+                .findAny();
+
+        if (userLiked.isPresent()) {
+            post.setLikes(post.getLikes() - 1);
+            post.getLikedUsers().remove(user.getUsername());
+        } else {
+            post.setLikes(post.getLikes() + 1);
+            post.getLikedUsers().add(user.getUsername());
+        }
+        post = postRepository.save(post);
+        return mapper.map(post, PostResponse.class);
+    }
+
 
     private Post getPostFromDB(Long postId) {
         return postRepository.findById(postId)
-                .orElseThrow(() -> new EntityNotFoundException(String.format("Post with id: %s not found", postId)));
+                .orElseThrow(() -> new PostNotFoundException(String.format("Post with id: %s not found", postId)));
     }
 
     private Category getCategoryFromDBById(Long categoryId) {

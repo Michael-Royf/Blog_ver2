@@ -19,6 +19,8 @@ public class PostResponse {
     private String title;
     private String description;
     private String content;
+    private Integer likes;
+    private Set<String> likedUsers = new HashSet<>();
     @JsonFormat(pattern = "yyyy-mm-dd HH:mm:ss", timezone = "Israel")
     private LocalDateTime createDate;
     @JsonFormat(pattern = "yyyy-mm-dd HH:mm:ss", timezone = "Israel")

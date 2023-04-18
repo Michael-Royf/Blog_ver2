@@ -3,6 +3,8 @@ package com.michael.blog.service.impl;
 import com.michael.blog.entity.Comment;
 import com.michael.blog.entity.Post;
 import com.michael.blog.entity.User;
+import com.michael.blog.exception.payload.CommentNotFoundException;
+import com.michael.blog.exception.payload.PostNotFoundException;
 import com.michael.blog.payload.request.CommentRequest;
 import com.michael.blog.payload.response.CommentResponse;
 import com.michael.blog.payload.response.MessageResponse;
@@ -10,11 +12,11 @@ import com.michael.blog.repository.CommentRepository;
 import com.michael.blog.repository.PostRepository;
 import com.michael.blog.service.CommentService;
 import com.michael.blog.service.UserService;
-import jakarta.persistence.EntityNotFoundException;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -36,7 +38,7 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    public CommentResponse createComment(long postId, CommentRequest commentRequest) {
+    public CommentResponse createComment(Long postId, CommentRequest commentRequest) {
         Post post = getPostFromDB(postId);
         User user = userService.getLoggedInUser();
         Comment comment = Comment.builder()
@@ -44,15 +46,16 @@ public class CommentServiceImpl implements CommentService {
                 .body(commentRequest.getBody())
                 .post(post)
                 .user(user)
+                .likes(0)
                 .build();
         comment = commentRepository.save(comment);
         return mapper.map(comment, CommentResponse.class);
     }
 
     @Override
-    public List<CommentResponse> getCommentByPostId(long postId) {
-        List<Comment> comments = commentRepository.findByPostId(postId);
-        return comments.stream()
+    public List<CommentResponse> getAllCommentsByPostId(Long postId) {
+        return commentRepository.findByPostId(postId)
+                .stream()
                 .map(comment -> mapper.map(comment, CommentResponse.class))
                 .collect(Collectors.toList());
     }
@@ -70,9 +73,7 @@ public class CommentServiceImpl implements CommentService {
         Post post = getPostFromDB(postId);
         Comment comment = getCommentFromDB(commentId);
         isCommentBelongPost(post, comment);
-        if (!comment.getUser().getId().equals(userService.getLoggedInUser().getId())) {
-            throw new RuntimeException("This comment doesn't belong to you, you can't update it!");
-        }
+        isCommentBelongUser(comment);
         comment.setBody(commentRequest.getBody());
         comment = commentRepository.save(comment);
         return mapper.map(comment, CommentResponse.class);
@@ -84,28 +85,55 @@ public class CommentServiceImpl implements CommentService {
         Post post = getPostFromDB(postId);
         Comment comment = getCommentFromDB(commentId);
         isCommentBelongPost(post, comment);
-        if (!comment.getUser().getId().equals(userService.getLoggedInUser().getId())) {
-            throw new RuntimeException("This comment doesn't belong to you, you can't delete it!");
-        }
+        isCommentBelongUser(comment);
         commentRepository.delete(comment);
         return new MessageResponse(String.format("Comment with id: %s was deleted", commentId));
     }
 
-
-    private Comment getCommentFromDB(Long commentId) {
+    @Override
+    public Comment getCommentFromDB(Long commentId) {
         return commentRepository.findById(commentId)
-                .orElseThrow(() -> new EntityNotFoundException(String.format("Comment with id %s not found", commentId)));
+                .orElseThrow(() -> new CommentNotFoundException(String.format("Comment with id %s not found", commentId)));
+    }
+
+    @Override
+    public void isCommentBelongPost(Post post, Comment comment) {
+        if (!comment.getPost().getId().equals(post.getId())) {
+            throw new RuntimeException("Comment does not belong to post");
+        }
+    }
+
+    @Override
+    public void isCommentBelongUser(Comment comment) {
+        if (!comment.getUser().getId().equals(userService.getLoggedInUser().getId())) {
+            throw new RuntimeException("This comment doesn't belong to you, you can't delete it!");
+        }
+    }
+
+    @Override
+    public CommentResponse likeComment(Long commentId) {
+        User user = userService.getLoggedInUser();
+        Comment comment = getCommentFromDB(commentId);
+
+        Optional<String> userLiked = comment.getLikedUsers()
+                .stream()
+                .filter(u -> u.equals(user.getUsername()))
+                .findAny();
+
+        if (userLiked.isPresent()) {
+            comment.setLikes(comment.getLikes() - 1);
+            comment.getLikedUsers().remove(user.getUsername());
+        } else {
+            comment.setLikes(comment.getLikes() + 1);
+            comment.getLikedUsers().add(user.getUsername());
+        }
+        comment = commentRepository.save(comment);
+        return mapper.map(comment, CommentResponse.class);
     }
 
     private Post getPostFromDB(Long postId) {
         return postRepository.findById(postId)
-                .orElseThrow(() -> new EntityNotFoundException(String.format("Post with id: %s not found", postId)));
-    }
-
-    private void isCommentBelongPost(Post post, Comment comment) {
-        if (!comment.getPost().getId().equals(post.getId())) {
-            throw new RuntimeException("Comment does not belong to post");
-        }
+                .orElseThrow(() -> new PostNotFoundException(String.format("Post with id: %s not found", postId)));
     }
 
 }

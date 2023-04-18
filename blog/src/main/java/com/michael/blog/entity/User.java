@@ -24,17 +24,17 @@ import java.util.List;
 @Table(name = "users")
 public class User implements UserDetails {
     @Id
-    @SequenceGenerator(
-            name = "user_sequence",
-            sequenceName = "user_sequence",
-            allocationSize = 1
-    )
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_sequence")
+//    @SequenceGenerator(
+//            name = "user_sequence",
+//            sequenceName = "user_sequence",
+//            allocationSize = 1
+//    )
+//    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_sequence")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable = false, updatable = false)
     private Long id;
-
-    @Column(nullable = false, updatable = false)
-    private String userId;
+    //    @Column(nullable = false, updatable = false)
+//    private String generateId;
     @Column(nullable = false)
     private String firstName;
     @Column(nullable = false)
@@ -61,20 +61,22 @@ public class User implements UserDetails {
     @Column(updatable = true, name = "update_date")
     private LocalDateTime updateDate;
 
-    @Column(name = "last_login_date", updatable = true)
+    @Column(name = "last_login_date")
     private Date lastLoginDate;
-    @Column(name = "display_last_login_date", updatable = true)
+    @Column(name = "display_last_login_date")
     private Date displayLastLoginDate;
 
     private Boolean isNotLocked;
     private Boolean isActive;
+
+    private String profileImageFileName;
 
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
 //        SimpleGrantedAuthority authority = new SimpleGrantedAuthority(role.name());
 //        return Collections.singletonList(authority);
-     //   return List.of(new SimpleGrantedAuthority(role.name()));
+        //   return List.of(new SimpleGrantedAuthority(role.name()));
         return List.of(new SimpleGrantedAuthority(this.role.name()));
     }
 

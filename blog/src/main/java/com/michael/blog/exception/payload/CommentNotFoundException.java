@@ -1,9 +1,8 @@
 package com.michael.blog.exception.payload;
 
-
-public class PostNotFoundException extends RuntimeException {
+public class CommentNotFoundException extends RuntimeException{
     private static final long serialVersionUID = 1L;
-    public PostNotFoundException(String message) {
+    public CommentNotFoundException(String message) {
         super(message);
     }
 }

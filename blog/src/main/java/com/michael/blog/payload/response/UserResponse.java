@@ -12,7 +12,8 @@ import java.util.Date;
 @Setter
 @Builder
 public class UserResponse {
-    private String userId;
+    private String id;
+    // private String generateId;
     private String firstName;
     private String lastName;
     private String username;
@@ -20,4 +21,5 @@ public class UserResponse {
     @JsonFormat(pattern = "yyyy-mm-dd HH:mm:ss", timezone = "Israel")
     private Date displayLastLoginDate;
     private UserRole role;
+    private String profileImageFileName;
 }

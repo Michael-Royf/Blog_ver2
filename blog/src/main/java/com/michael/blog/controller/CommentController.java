@@ -47,8 +47,8 @@ public class CommentController {
             responseCode = "200",
             description = "Http Status 200 SUCCESS")
     @GetMapping("/post/{postId}/comment")
-    public ResponseEntity<List<CommentResponse>> getCommentsByPostId(@PathVariable Long postId) {
-        return new ResponseEntity<>(commentService.getCommentByPostId(postId), OK);
+    public ResponseEntity<List<CommentResponse>> getAllCommentsByPostId(@PathVariable Long postId) {
+        return new ResponseEntity<>(commentService.getAllCommentsByPostId(postId), OK);
     }
 
     @Operation(
@@ -87,6 +87,11 @@ public class CommentController {
     public ResponseEntity<MessageResponse> deleteComment(@PathVariable(value = "postId") Long postId,
                                                          @PathVariable(value = "commentId") Long commentId) {
         return new ResponseEntity<>(commentService.deleteComment(postId, commentId), OK);
+    }
+
+    @PostMapping("/comment/like/{commentId}")
+    public ResponseEntity<CommentResponse> likeComment(@PathVariable Long commentId){
+        return new ResponseEntity<>(commentService.likeComment(commentId), OK);
     }
 
 }

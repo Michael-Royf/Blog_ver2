@@ -12,15 +12,17 @@ import lombok.*;
 @Entity
 public class Token {
     @Id
-    @SequenceGenerator(
-            name = "token_sequence",
-            sequenceName = "token_sequence",
-            allocationSize = 1
-    )
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "token_sequence")
+//    @SequenceGenerator(
+//            name = "token_sequence",
+//            sequenceName = "token_sequence",
+//            allocationSize = 1)
+//    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "token_sequence")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "token", nullable = false)
     private String token;
+
     @Enumerated(EnumType.STRING)
     private TokenType tokenType;
 

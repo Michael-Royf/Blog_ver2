@@ -21,12 +21,13 @@ import java.util.Set;
 @Table(name = "posts", uniqueConstraints = {@UniqueConstraint(columnNames = "title")})
 public class Post {
     @Id
-    @SequenceGenerator(
-            name = "post_sequence",
-            sequenceName = "post_sequence",
-            allocationSize = 1
-    )
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "post_sequence")
+//    @SequenceGenerator(
+//            name = "post_sequence",
+//            sequenceName = "post_sequence",
+//            allocationSize = 1
+//    )
+//    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "post_sequence")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "post_id", updatable = false)
     private Long id;
 
@@ -40,6 +41,11 @@ public class Post {
     @Column(name = "content", nullable = false, updatable = true)
     @Lob
     private String content;
+    @Column(name = "number_of_likes")
+    private Integer likes;
+    @Column(name = "liked_users")
+    @ElementCollection(targetClass = String.class)
+    private Set<String> likedUsers = new HashSet<>();
 
     @CreationTimestamp
     @Column(updatable = false, name = "create_date")

@@ -5,6 +5,7 @@ import com.michael.blog.payload.request.LoginRequest;
 import com.michael.blog.payload.request.PasswordRequest;
 import com.michael.blog.payload.request.UserRequest;
 import com.michael.blog.payload.response.JwtAuthResponse;
+import com.michael.blog.payload.response.MessageResponse;
 import com.michael.blog.payload.response.UserResponse;
 import com.michael.blog.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -13,9 +14,16 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+
+import static org.springframework.http.MediaType.IMAGE_JPEG_VALUE;
 
 @RestController
 @RequestMapping("/api/v1/")
@@ -27,6 +35,19 @@ public class UserController {
     public UserController(UserService userService) {
         this.userService = userService;
     }
+
+
+    @Operation(
+            summary = "Create User Rest API",
+            description = "Create User REST API is used to save user into database")
+    @ApiResponse(
+            responseCode = "201",
+            description = "Http Status 201 CREATED")
+    @PostMapping("/register")
+    public ResponseEntity<String> register(@RequestBody @Valid UserRequest registerRequest) throws IOException {
+        return new ResponseEntity<>(userService.register(registerRequest), HttpStatus.CREATED);
+    }
+
 
     @Operation(
             summary = "Login Rest API",
@@ -43,18 +64,6 @@ public class UserController {
     public JwtAuthResponse refreshToken(HttpServletRequest request,
                                         HttpServletResponse response) {
         return userService.refreshToken(request, response);
-    }
-
-
-    @Operation(
-            summary = "Create User Rest API",
-            description = "Create User REST API is used to save user into database")
-    @ApiResponse(
-            responseCode = "201",
-            description = "Http Status 201 CREATED")
-    @PostMapping("/register")
-    public ResponseEntity<String> register(@RequestBody @Valid UserRequest registerRequest) {
-        return new ResponseEntity<>(userService.register(registerRequest), HttpStatus.CREATED);
     }
 
 
@@ -83,6 +92,7 @@ public class UserController {
     @GetMapping("/user/myprofile")
     public ResponseEntity<UserResponse> getMyProfile() {
         return new ResponseEntity<>(userService.getMyProfile(), HttpStatus.OK);
+
     }
 
     @Operation(
@@ -129,4 +139,26 @@ public class UserController {
     public ResponseEntity<String> forgotPassword(@RequestBody @Valid EmailRequest email) {
         return new ResponseEntity<>(userService.forgotPassword(email.getEmail()), HttpStatus.OK);
     }
+
+
+    @PostMapping("/updateProfileImage")
+    public ResponseEntity<UserResponse> updateProfileImage(@RequestParam(value = "profileImage") MultipartFile profileImage) throws IOException {
+        return new ResponseEntity<>(userService.updateProfileImage(profileImage), HttpStatus.OK);
+    }
+
+    @GetMapping(path = "/profileImage", produces = IMAGE_JPEG_VALUE)
+    public ResponseEntity<?> getProfileImage() {
+        byte[] imageData = userService.getProfileImage();
+        return ResponseEntity.ok()
+                .contentType(MediaType.valueOf(IMAGE_JPEG_VALUE))
+                .body(new ByteArrayResource(imageData));
+    }
+
+
+    @DeleteMapping("/deleteProfileImage")
+    public ResponseEntity<MessageResponse> deleteProfileImage() throws IOException {
+        return new ResponseEntity<>(userService.deleteProfileImage(), HttpStatus.OK);
+    }
+
+
 }

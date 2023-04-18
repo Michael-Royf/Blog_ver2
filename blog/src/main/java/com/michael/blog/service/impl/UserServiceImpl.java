@@ -2,18 +2,22 @@ package com.michael.blog.service.impl;
 
 import com.michael.blog.constants.UserConstant;
 import com.michael.blog.entity.ConfirmationToken;
+import com.michael.blog.entity.ImageData;
 import com.michael.blog.entity.Token;
 import com.michael.blog.entity.User;
 import com.michael.blog.entity.enumeration.TokenType;
 import com.michael.blog.entity.enumeration.UserRole;
 import com.michael.blog.exception.payload.EmailExistException;
+import com.michael.blog.exception.payload.ImageNotFoundException;
 import com.michael.blog.exception.payload.UserNotFoundException;
 import com.michael.blog.exception.payload.UsernameExistException;
 import com.michael.blog.payload.request.LoginRequest;
 import com.michael.blog.payload.request.UserRequest;
 import com.michael.blog.payload.response.JwtAuthResponse;
+import com.michael.blog.payload.response.MessageResponse;
 import com.michael.blog.payload.response.UserResponse;
 import com.michael.blog.repository.ConfirmationTokenRepository;
+import com.michael.blog.repository.ImageDataRepository;
 import com.michael.blog.repository.TokenRepository;
 import com.michael.blog.repository.UserRepository;
 import com.michael.blog.security.JwtTokenProvider;
@@ -21,6 +25,7 @@ import com.michael.blog.service.ConfirmationTokenService;
 import com.michael.blog.service.EmailSender;
 import com.michael.blog.service.UserService;
 import com.michael.blog.utility.EmailBuilder;
+import com.michael.blog.utility.ImageUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -36,15 +41,20 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 import java.time.LocalDateTime;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
+import static com.michael.blog.constants.FileConstant.NOT_AN_IMAGE_FILE;
+import static com.michael.blog.constants.FileConstant.TEMP_PROFILE_IMAGE_BASE_URL;
 import static com.michael.blog.constants.SecurityConstant.*;
 import static com.michael.blog.constants.UserConstant.*;
+import static org.springframework.http.MediaType.*;
 
 @Service
 @Slf4j
@@ -62,7 +72,8 @@ public class UserServiceImpl implements UserService {
     private final ConfirmationTokenRepository confirmationTokenRepository;
     private final EmailBuilder emailBuilder;
     private final EmailSender emailSender;
-    private final UserDetailsService userDetailsService;
+    private final ImageDataRepository imageDataRepository;
+    private final ImageUtils imageUtils;
 
     public UserServiceImpl(ModelMapper mapper,
                            AuthenticationManager authenticationManager,
@@ -74,7 +85,8 @@ public class UserServiceImpl implements UserService {
                            ConfirmationTokenRepository confirmationTokenRepository,
                            EmailBuilder emailBuilder,
                            EmailSender emailSender,
-                           UserDetailsService userDetailsService) {
+                           ImageDataRepository imageDataRepository,
+                           ImageUtils imageUtils) {
         this.mapper = mapper;
         this.authenticationManager = authenticationManager;
         this.userRepository = userRepository;
@@ -85,7 +97,45 @@ public class UserServiceImpl implements UserService {
         this.confirmationTokenRepository = confirmationTokenRepository;
         this.emailBuilder = emailBuilder;
         this.emailSender = emailSender;
-        this.userDetailsService = userDetailsService;
+        this.imageDataRepository = imageDataRepository;
+        this.imageUtils = imageUtils;
+    }
+
+    @Override
+    public String register(UserRequest registerRequest) throws IOException {
+        validateNewUsernameAndEmail(StringUtils.EMPTY, registerRequest.getUsername(), registerRequest.getEmail());
+        String password = generatePassword();
+        User user = User.builder()
+                //   .generateId(generateUserID())
+                .firstName(registerRequest.getFirstName())
+                .lastName(registerRequest.getLastName())
+                .email(registerRequest.getEmail())
+                .username(registerRequest.getUsername())
+                .password(passwordEncoder.encode(password))
+                .role(UserRole.ROLE_ADMIN)
+                .lastLoginDate(new Date())
+                .isNotLocked(true)
+                .build();
+
+        saveProfileTempImage(user);
+        userRepository.save(user);
+
+        String token = UUID.randomUUID().toString();
+        ConfirmationToken confirmationToken =
+                ConfirmationToken.builder()
+                        .token(token)
+                        .createdAt(LocalDateTime.now())
+                        .expiredAt(LocalDateTime.now().plusMinutes(15))
+                        .user(user)
+                        .build();
+        tokenService.saveConfirmationToken(confirmationToken);
+
+        String link = LINK_FOR_CONFIRMATION + token;
+        emailSender.sendEmailForVerification(
+                user.getEmail(),
+                emailBuilder.buildEmailForConfirmationEmail(user.getFirstName(), link));
+        emailSender.sendNewPassword(user.getEmail(), user.getFirstName(), password);
+        return "User registered successfully!";
     }
 
     @Override
@@ -120,13 +170,6 @@ public class UserServiceImpl implements UserService {
             User user = findUserByUsername(username)
                     .orElseThrow(() -> new UsernameNotFoundException(NO_USER_FOUND_BY_USERNAME + username));
 
-            //   UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-
-//            Authentication authenticate = authenticationManager
-//                    .authenticate(new UsernamePasswordAuthenticationToken(
-//                            username,
-//                            user.getPassword()));
-
             String accessToken = jwtTokenProvider.generateAccessToken(username);
             revokeAllUserTokens(user);
             Token token = createTokenForDB(user, accessToken);
@@ -137,7 +180,6 @@ public class UserServiceImpl implements UserService {
                     .build();
         }
         throw new RuntimeException("Refresh token not found or expired");
-        //   return null;
     }
 
 
@@ -149,43 +191,6 @@ public class UserServiceImpl implements UserService {
         return null;
     }
 
-    @Override
-    public String register(UserRequest registerRequest) {
-
-        validateNewUsernameAndEmail(StringUtils.EMPTY, registerRequest.getUsername(), registerRequest.getEmail());
-
-        String password = generatePassword();
-
-        User user = User.builder()
-                .userId(generatePassword())
-                .firstName(registerRequest.getFirstName())
-                .lastName(registerRequest.getLastName())
-                .email(registerRequest.getEmail())
-                .username(registerRequest.getUsername())
-                .password(passwordEncoder.encode(password))
-                .role(UserRole.ROLE_ADMIN)
-                .lastLoginDate(new Date())
-                .isNotLocked(true)
-                .build();
-        userRepository.save(user);
-
-        String token = UUID.randomUUID().toString();
-        ConfirmationToken confirmationToken =
-                ConfirmationToken.builder()
-                        .token(token)
-                        .createdAt(LocalDateTime.now())
-                        .expiredAt(LocalDateTime.now().plusMinutes(15))
-                        .user(user)
-                        .build();
-        tokenService.saveConfirmationToken(confirmationToken);
-
-        String link = LINK_FOR_CONFIRMATION + token;
-        emailSender.sendEmailForVerification(
-                user.getEmail(),
-                emailBuilder.buildEmailForConfirmationEmail(user.getFirstName(), link));
-        emailSender.sendNewPassword(user.getEmail(), user.getFirstName(), password);
-        return "User registered successfully!";
-    }
 
     @Override
     @Transactional
@@ -275,6 +280,33 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new UserNotFoundException(String.format(UserConstant.NO_USER_FOUND_BY_ID, userId)));
     }
 
+    @Override
+    public UserResponse updateProfileImage(MultipartFile profileImage) throws UserNotFoundException, UsernameExistException, EmailExistException, IOException {
+        User user = getLoggedInUser();
+        user = saveProfileImage(user, profileImage);
+        return mapper.map(user, UserResponse.class);
+    }
+
+    @Override
+    public MessageResponse deleteProfileImage() throws IOException {
+        User user = getLoggedInUser();
+        ImageData imageData = imageDataRepository.findByFileName(user.getProfileImageFileName())
+                .orElseThrow(() -> new ImageNotFoundException("Image not found"));
+        imageDataRepository.delete(imageData);
+
+        saveProfileTempImage(user);
+        userRepository.save(user);
+        return new MessageResponse(String.format("Image with file name %s was deleted", imageData.getFileName()));
+    }
+
+    @Override
+    public byte[] getProfileImage() {
+        User user = getLoggedInUser();
+        ImageData imageData = imageDataRepository
+                .findByFileName(user.getProfileImageFileName()).orElseThrow(() -> new ImageNotFoundException("Not found image"));
+        return imageUtils.decompressImage(imageData.getData());
+    }
+
 
     private User validateNewUsernameAndEmail(String currentUsername, String newUsername, String newEmail) throws UserNotFoundException, UsernameExistException, EmailExistException {
         User userByNewUsername = findUserByUsername(newUsername).orElse(null);
@@ -314,6 +346,10 @@ public class UserServiceImpl implements UserService {
         return RandomStringUtils.randomAlphanumeric(10);
     }
 
+    private String generateUserID() {
+        return RandomStringUtils.randomNumeric(10);
+    }
+
     private void revokeAllUserTokens(User user) {
         List<Token> validUserTokens = tokenRepository.findAllValidTokensByUser(user.getId());
         if (validUserTokens.isEmpty()) {
@@ -335,6 +371,57 @@ public class UserServiceImpl implements UserService {
                 .expired(false)
                 .revoked(false)
                 .build();
+    }
+
+    private User saveProfileImage(User user, MultipartFile profileImage) throws IOException {
+        if (profileImage != null) {
+            if (!Arrays.asList(IMAGE_JPEG_VALUE, IMAGE_PNG_VALUE, IMAGE_GIF_VALUE).contains(profileImage.getContentType())) {
+                throw new RuntimeException(profileImage.getOriginalFilename() + NOT_AN_IMAGE_FILE);
+            }
+
+            if (user.getProfileImageFileName() != null) {
+                Optional<ImageData> imageDataDb = imageDataRepository
+                        .findByFileName(user.getProfileImageFileName());
+                imageDataRepository.delete(imageDataDb.get());
+            }
+
+            ImageData imageData = ImageData.builder()
+                    .fileName(profileImage.getOriginalFilename())
+                    .fileType(profileImage.getContentType())
+                    .data(imageUtils.compressImage(profileImage.getBytes()))
+                    .build();
+            imageData = imageDataRepository.save(imageData);
+            user.setProfileImageFileName(imageData.getFileName());
+            log.info("Saved file in database by name: " + profileImage.getOriginalFilename());
+            return userRepository.save(user);
+        }
+        throw new RuntimeException("Image not found");
+    }
+
+
+    private void saveProfileTempImage(User user) throws IOException {
+        ImageData imageData = ImageData.builder()
+                .fileName(user.getUsername() + "_temporaryImage")
+                .fileType(IMAGE_JPEG_VALUE)
+                .data(imageUtils.compressImage(getTempImage(user.getUsername())))
+                .build();
+        imageData = imageDataRepository.save(imageData);
+        user.setProfileImageFileName(imageData.getFileName());
+        log.info("Saved file in database by name: " + imageData.getFileName());
+    }
+
+
+    private byte[] getTempImage(String username) throws IOException {
+        URL url = new URL(TEMP_PROFILE_IMAGE_BASE_URL + username);
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        try (InputStream inputStream = url.openStream()) {
+            int bytesRead;
+            byte[] chunk = new byte[1024];
+            while ((bytesRead = inputStream.read(chunk)) > 0) {
+                byteArrayOutputStream.write(chunk, 0, bytesRead);
+            }
+        }
+        return byteArrayOutputStream.toByteArray();
     }
 
 }

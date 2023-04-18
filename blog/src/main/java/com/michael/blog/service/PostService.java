@@ -1,5 +1,6 @@
 package com.michael.blog.service;
 
+import com.michael.blog.entity.Post;
 import com.michael.blog.payload.request.PostRequest;
 import com.michael.blog.payload.response.MessageResponse;
 import com.michael.blog.payload.response.PostResponse;
@@ -22,5 +23,9 @@ public interface PostService {
     PostResponse updatePost(Long postId, PostRequest postRequest);
 
     List<PostResponse> getPostsByCategory(Long categoryId);
+
+    void isPostBelongUser(Post post);
+
+    PostResponse likePost(Long postId);
 
 }

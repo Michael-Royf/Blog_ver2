@@ -17,12 +17,13 @@ import java.time.LocalDateTime;
 @Table
 public class ConfirmationToken {
     @Id
-    @SequenceGenerator(
-            name = "confirmationToken_sequence",
-            sequenceName = "confirmationToken_sequence",
-            allocationSize = 1
-    )
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "confirmationToken_sequence")
+//    @SequenceGenerator(
+//            name = "confirmationToken_sequence",
+//            sequenceName = "confirmationToken_sequence",
+//            allocationSize = 1
+//    )
+//    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "confirmationToken_sequence")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @Column(nullable = false)
     private String token;

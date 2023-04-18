@@ -1,9 +1,6 @@
 package com.michael.blog.exception;
 
-import com.michael.blog.exception.payload.EmailExistException;
-import com.michael.blog.exception.payload.TokenException;
-import com.michael.blog.exception.payload.UserNotFoundException;
-import com.michael.blog.exception.payload.UsernameExistException;
+import com.michael.blog.exception.payload.*;
 import com.michael.blog.payload.response.HttpResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -55,6 +52,21 @@ public class GlobalExceptionException extends ResponseEntityExceptionHandler {
         return createHttpResponse(BAD_REQUEST, INCORRECT_CREDENTIALS);
     }
 
+
+    @ExceptionHandler(ImageNotFoundException.class)
+    public ResponseEntity<HttpResponse> imageNotFoundException(ImageNotFoundException exception) {
+        return createHttpResponse(NOT_FOUND, exception.getMessage());
+    }
+
+    @ExceptionHandler(CommentNotFoundException.class)
+    public ResponseEntity<HttpResponse> commentNotFoundException(CommentNotFoundException exception) {
+        return createHttpResponse(NOT_FOUND, exception.getMessage());
+    }
+
+    @ExceptionHandler(PostNotFoundException.class)
+    public ResponseEntity<HttpResponse> postNotFoundException(PostNotFoundException exception) {
+        return createHttpResponse(NOT_FOUND, exception.getMessage());
+    }
 
     @ExceptionHandler(LockedException.class)
     public ResponseEntity<HttpResponse> lockedException() {

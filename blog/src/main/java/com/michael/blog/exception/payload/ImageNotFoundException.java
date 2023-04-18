@@ -1,9 +1,8 @@
 package com.michael.blog.exception.payload;
 
-
-public class PostNotFoundException extends RuntimeException {
+public class ImageNotFoundException  extends RuntimeException{
     private static final long serialVersionUID = 1L;
-    public PostNotFoundException(String message) {
+    public ImageNotFoundException(String message) {
         super(message);
     }
 }

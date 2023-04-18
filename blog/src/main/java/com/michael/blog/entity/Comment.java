@@ -9,6 +9,8 @@ import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -19,18 +21,24 @@ import java.time.LocalDateTime;
 @Table(name = "comments")
 public class Comment {
     @Id
-    @SequenceGenerator(
-            name = "comment_sequence",
-            sequenceName = "comment_sequence",
-            allocationSize = 1
-    )
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "comment_sequence")
+//    @SequenceGenerator(
+//            name = "comment_sequence",
+//            sequenceName = "comment_sequence",
+//            allocationSize = 1
+//    )
+//    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "comment_sequence")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @Column(nullable = false)
     private String username;
     @Column(nullable = false)
     private String body;
 
+    @Column(name = "number_of_likes")
+    private Integer likes;
+    @Column(name = "liked_users")
+    @ElementCollection(targetClass = String.class)
+    private Set<String> likedUsers = new HashSet<>();
 
 
     @CreationTimestamp

@@ -62,6 +62,7 @@ public class SecurityConfig {
                                 .requestMatchers(HttpMethod.POST, "/api/v1/signup").permitAll()
                                 .requestMatchers(HttpMethod.POST, "/api/v1/forgot-password").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/v1/registration/confirm/**").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/api/v1/image").permitAll()
 
                                 .requestMatchers(HttpMethod.POST, "/api/v1/admin/**").hasAnyRole("ADMIN", "SUPERADMIN")
                                 .requestMatchers(HttpMethod.POST, "/api/v1/category/**").hasAnyRole("ADMIN", "SUPERADMIN")

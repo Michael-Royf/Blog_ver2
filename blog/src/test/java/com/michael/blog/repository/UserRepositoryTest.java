@@ -26,7 +26,7 @@ class UserRepositoryTest {
                 .firstName("Michael")
                 .lastName("Royf")
                 .username(username)
-                .userId("userID")
+            //    .generateId("userID")
                 .email(email)
               // .isActive(false)
                // .isNotLocked(true)
