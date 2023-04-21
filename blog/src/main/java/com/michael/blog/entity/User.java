@@ -34,7 +34,7 @@ public class User implements UserDetails {
     @Column(nullable = false, updatable = false)
     private Long id;
     //    @Column(nullable = false, updatable = false)
-//    private String generateId;
+//    private String generatedId;
     @Column(nullable = false)
     private String firstName;
     @Column(nullable = false)
@@ -51,7 +51,7 @@ public class User implements UserDetails {
     @Column(nullable = false, updatable = true)
     private UserRole role;
 
-    @OneToMany(mappedBy = "user")
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Token> tokens;
 
     @CreationTimestamp
@@ -68,15 +68,13 @@ public class User implements UserDetails {
 
     private Boolean isNotLocked;
     private Boolean isActive;
-
-    private String profileImageFileName;
-
+    @Column(name = "profile_image_URL")
+    private String profileImageURL;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
 //        SimpleGrantedAuthority authority = new SimpleGrantedAuthority(role.name());
 //        return Collections.singletonList(authority);
-        //   return List.of(new SimpleGrantedAuthority(role.name()));
         return List.of(new SimpleGrantedAuthority(this.role.name()));
     }
 

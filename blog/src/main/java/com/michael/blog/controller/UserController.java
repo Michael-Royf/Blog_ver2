@@ -146,14 +146,15 @@ public class UserController {
         return new ResponseEntity<>(userService.updateProfileImage(profileImage), HttpStatus.OK);
     }
 
-    @GetMapping(path = "/profileImage", produces = IMAGE_JPEG_VALUE)
-    public ResponseEntity<?> getProfileImage() {
-        byte[] imageData = userService.getProfileImage();
+
+    @GetMapping(path = "user/image/{username}/{filename}", produces = IMAGE_JPEG_VALUE)
+    public ResponseEntity<?> getProfileImage(@PathVariable("username") String username,
+                                             @PathVariable("filename") String fileName) throws IOException {
+        byte[] profileImage = userService.getProfileImage(username, fileName);
         return ResponseEntity.ok()
                 .contentType(MediaType.valueOf(IMAGE_JPEG_VALUE))
-                .body(new ByteArrayResource(imageData));
+                .body(new ByteArrayResource(profileImage));
     }
-
 
     @DeleteMapping("/deleteProfileImage")
     public ResponseEntity<MessageResponse> deleteProfileImage() throws IOException {

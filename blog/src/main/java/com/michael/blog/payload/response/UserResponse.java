@@ -21,5 +21,5 @@ public class UserResponse {
     @JsonFormat(pattern = "yyyy-mm-dd HH:mm:ss", timezone = "Israel")
     private Date displayLastLoginDate;
     private UserRole role;
-    private String profileImageFileName;
+    private String profileImageURL;
 }

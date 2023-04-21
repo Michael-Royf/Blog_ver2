@@ -3,6 +3,8 @@ package com.michael.blog.config;
 import com.michael.blog.entity.User;
 import com.michael.blog.repository.UserRepository;
 import com.michael.blog.service.impl.LoginAttemptService;
+import com.michael.blog.utility.ImageUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,18 +17,23 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.io.IOException;
 import java.util.Date;
 
 @Configuration
+@Slf4j
 public class ApplicationConfig {
 
     private final UserRepository userRepository;
     private final LoginAttemptService loginAttemptService;
+    private final ImageUtils imageUtils;
 
     public ApplicationConfig(UserRepository userRepository,
-                             LoginAttemptService loginAttemptService) {
+                             LoginAttemptService loginAttemptService,
+                             ImageUtils imageUtils) {
         this.userRepository = userRepository;
         this.loginAttemptService = loginAttemptService;
+        this.imageUtils = imageUtils;
     }
 
     @Bean
@@ -61,6 +68,7 @@ public class ApplicationConfig {
             user.setDisplayLastLoginDate(user.getLastLoginDate());
             user.setLastLoginDate(new Date());
             userRepository.save(user);
+            imageUtils.copyImageToLocalSystemFromDB(user);
             return user;
         };
     }

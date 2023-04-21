@@ -9,11 +9,12 @@ import lombok.*;
 @Setter
 @Builder
 @Entity
-@Table(name = "image_data")
-public class ImageData {
+@Table(name = "profile_image")
+public class ProfileImage {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     @Column(nullable = false, unique = true, name = "file_name")
     private String fileName;
     @Column(name = "file_type", nullable = false)
@@ -21,16 +22,6 @@ public class ImageData {
     @Lob
     @Column(columnDefinition = "longblob")
     private byte[] data;
+    @Column(name = "profile_image_URL")
+    private String profileImageURL;
 }
-
-
-
-
-
-
-//    @SequenceGenerator(
-//            name = "image_sequence",
-//            sequenceName = "image_sequence",
-//            allocationSize = 1
-//    )
-//    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "image_sequence")
