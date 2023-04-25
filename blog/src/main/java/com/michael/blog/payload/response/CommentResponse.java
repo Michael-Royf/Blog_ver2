@@ -23,9 +23,10 @@ public class CommentResponse {
     private String username;
     private String body;
     private Integer likes;
-    private Set<String> likedUsers = new HashSet<>();
+    private Set<String> likedUsers;
     @JsonFormat(pattern = "yyyy-mm-dd HH:mm:ss", timezone = "Israel")
     private LocalDateTime createDate;
     @JsonFormat(pattern = "yyyy-mm-dd HH:mm:ss", timezone = "Israel")
     private LocalDateTime updateDate;
+    private Set<String> imageUrlSet;
 }

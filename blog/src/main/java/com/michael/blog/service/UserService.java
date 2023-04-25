@@ -41,6 +41,8 @@ public interface UserService {
 
     UserResponse updateProfileImage(MultipartFile profileImage) throws IOException;
 
+    User findUserByUsernameInDB(String username);
+
     MessageResponse deleteProfileImage() throws IOException;
 
     byte[] getProfileImage(String username, String fileName) throws IOException;

@@ -17,7 +17,7 @@ public class JwtTokenProvider {
     @Value("${app.jwt-secret}")
     private String jwtSecret;
 
-    public static final long EXPIRATION_TIME_FOR_ACCESS_TOKEN = 180_000; // 3 min
+    public static final long EXPIRATION_TIME_FOR_ACCESS_TOKEN = 720_000;
     public static final long EXPIRATION_TIME_FOR_REFRESH_TOKEN = 3_600_000; // 60 min
     //604_800_000 7 days
 

@@ -9,14 +9,22 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.michael.blog.constants.PaginationConstants.*;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
+import static org.springframework.http.MediaType.IMAGE_JPEG_VALUE;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -115,6 +123,62 @@ public class PostController {
     @PostMapping("/post/like/{postId}")
     public ResponseEntity<PostResponse> likePost(@PathVariable Long postId) {
         return new ResponseEntity<>(postService.likePost(postId), OK);
+    }
+
+
+    @PostMapping("/post/addImage/{postId}")
+    public ResponseEntity<PostResponse> addImagesToPost(@PathVariable("postId") Long postId,
+                                                        @RequestParam(value = "files") List<MultipartFile> files) throws IOException {
+        return new ResponseEntity<>(postService.addImageToPost(postId, files), OK);
+    }
+
+
+    @GetMapping(path = "/post/image/{username}/{postId}/{filename}", produces = IMAGE_JPEG_VALUE)
+    public ResponseEntity<?> getPostImage(@PathVariable("username") String username,
+                                          @PathVariable("postId") Long postId,
+                                          @PathVariable("filename") String filename) {
+        byte[] postImage = postService.viewPostImage(username, postId, filename);
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("File-Name", filename);
+        headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment;File-Name=" + filename);
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.valueOf(IMAGE_JPEG_VALUE))
+                .headers(headers)
+                .body(postImage);
+    }
+
+    //TODO: don't work
+    @GetMapping(path = "/post/{postId}/images", produces = MediaType.IMAGE_JPEG_VALUE)
+    public ResponseEntity<List<Resource>> viewAllImagesFromPost(@PathVariable("postId") Long postId) {
+        List<Resource> resources = new ArrayList<>();
+        for (byte[] bytes : postService.viewAllPostImages(postId)) {
+            ByteArrayResource byteArrayResource = new ByteArrayResource(bytes);
+            resources.add(byteArrayResource);
+        }
+
+        if (!resources.isEmpty()) {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.IMAGE_JPEG);
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .body(resources);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+
+    @DeleteMapping("/post/image/{postId}/{filename}")
+    public ResponseEntity<MessageResponse> deletePostImage(@PathVariable("filename") String filename,
+                                                           @PathVariable("postId") Long postId) {
+        return new ResponseEntity<>(postService.deletePostImage(postId, filename), OK);
+    }
+
+
+    @DeleteMapping("/post/image/{postId}")
+    public ResponseEntity<MessageResponse> deleteAllPostImages(@PathVariable("postId") Long postId) {
+        return new ResponseEntity<>(postService.deleteAllPostImages(postId), OK);
     }
 
 

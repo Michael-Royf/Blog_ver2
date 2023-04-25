@@ -106,6 +106,4 @@ public class AdminController {
     public ResponseEntity<String> changeAdminRoleToUser(@PathVariable Long userId) {
         return new ResponseEntity<>(adminService.changeAdminRoleToUser(userId), HttpStatus.OK);
     }
-
-
 }

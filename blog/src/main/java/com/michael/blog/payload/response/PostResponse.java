@@ -2,6 +2,7 @@ package com.michael.blog.payload.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.michael.blog.entity.Comment;
+import com.michael.blog.entity.ImageData;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -25,6 +26,7 @@ public class PostResponse {
     private LocalDateTime createDate;
     @JsonFormat(pattern = "yyyy-mm-dd HH:mm:ss", timezone = "Israel")
     private LocalDateTime updateDate;
-    private Set<Comment> comments = new HashSet<>();
     private Long categoryId;
+    private Set<String> imageUrlSet;
+    private Set<Comment> comments;
 }

@@ -21,13 +21,13 @@ import java.util.Set;
 @Table(name = "comments")
 public class Comment {
     @Id
-//    @SequenceGenerator(
-//            name = "comment_sequence",
-//            sequenceName = "comment_sequence",
-//            allocationSize = 1
-//    )
-//    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "comment_sequence")
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @SequenceGenerator(
+            name = "comment_sequence",
+            sequenceName = "comment_sequence",
+            allocationSize = 1
+    )
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "comment_sequence")
+    // @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @Column(nullable = false)
     private String username;
@@ -39,6 +39,10 @@ public class Comment {
     @Column(name = "liked_users")
     @ElementCollection(targetClass = String.class)
     private Set<String> likedUsers = new HashSet<>();
+
+
+    @ElementCollection(targetClass = String.class)
+    private Set<String> imageUrlSet = new HashSet<>();
 
 
     @CreationTimestamp
@@ -58,4 +62,22 @@ public class Comment {
     @JsonIgnore
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Post post;
+
+
+    public void addImageURL(String imageURL) {
+        imageUrlSet.add(imageURL);
+    }
+
+
+//    if (imageUrlSet.size() < 2) {
+//        imageUrlSet.add(imageURL);
+//    } else {
+//        throw new IllegalStateException("Can not add more than 2 images to a comment");
+//    }
+
+
+
+    public void removeImageURL(String imageURL) {
+        imageUrlSet.remove(imageURL);
+    }
 }

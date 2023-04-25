@@ -21,24 +21,24 @@ import java.util.Set;
 @Table(name = "posts", uniqueConstraints = {@UniqueConstraint(columnNames = "title")})
 public class Post {
     @Id
-//    @SequenceGenerator(
-//            name = "post_sequence",
-//            sequenceName = "post_sequence",
-//            allocationSize = 1
-//    )
-//    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "post_sequence")
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @SequenceGenerator(
+            name = "post_sequence",
+            sequenceName = "post_sequence",
+            allocationSize = 1
+    )
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "post_sequence")
+   // @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "post_id", updatable = false)
     private Long id;
 
     @Column(nullable = false)
     private String username;
 
-    @Column(name = "title", nullable = false, updatable = true)
+    @Column(name = "title", nullable = false)
     private String title;
-    @Column(name = "description", nullable = false, updatable = true)
+    @Column(name = "description", nullable = false)
     private String description;
-    @Column(name = "content", nullable = false, updatable = true)
+    @Column(name = "content", nullable = false)
     @Lob
     private String content;
     @Column(name = "number_of_likes")
@@ -57,6 +57,9 @@ public class Post {
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Comment> comments = new HashSet<>();
 
+    @ElementCollection(targetClass = String.class)
+    private Set<String> imageUrlSet = new HashSet<>();
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
     @JsonIgnore
@@ -67,4 +70,12 @@ public class Post {
     @JoinColumn(name = "category_id")
     private Category category;
 
+
+    public void addImageURL(String imageURL) {
+        imageUrlSet.add(imageURL);
+    }
+
+    public void removeImageURL(String imageURL) {
+        imageUrlSet.remove(imageURL);
+    }
 }

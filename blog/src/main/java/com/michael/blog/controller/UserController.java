@@ -141,12 +141,6 @@ public class UserController {
     }
 
 
-    @PostMapping("/updateProfileImage")
-    public ResponseEntity<UserResponse> updateProfileImage(@RequestParam(value = "profileImage") MultipartFile profileImage) throws IOException {
-        return new ResponseEntity<>(userService.updateProfileImage(profileImage), HttpStatus.OK);
-    }
-
-
     @GetMapping(path = "user/image/{username}/{filename}", produces = IMAGE_JPEG_VALUE)
     public ResponseEntity<?> getProfileImage(@PathVariable("username") String username,
                                              @PathVariable("filename") String fileName) throws IOException {
@@ -155,6 +149,12 @@ public class UserController {
                 .contentType(MediaType.valueOf(IMAGE_JPEG_VALUE))
                 .body(new ByteArrayResource(profileImage));
     }
+
+    @PostMapping("/updateProfileImage")
+    public ResponseEntity<UserResponse> updateProfileImage(@RequestParam(value = "profileImage") MultipartFile profileImage) throws IOException {
+        return new ResponseEntity<>(userService.updateProfileImage(profileImage), HttpStatus.OK);
+    }
+
 
     @DeleteMapping("/deleteProfileImage")
     public ResponseEntity<MessageResponse> deleteProfileImage() throws IOException {

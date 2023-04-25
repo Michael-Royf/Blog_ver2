@@ -1,46 +1,51 @@
 package com.michael.blog.service.impl;
 
 import com.michael.blog.entity.Category;
+import com.michael.blog.entity.ImageData;
 import com.michael.blog.entity.Post;
 import com.michael.blog.entity.User;
+import com.michael.blog.exception.payload.ImageNotFoundException;
 import com.michael.blog.exception.payload.PostNotFoundException;
 import com.michael.blog.payload.request.PostRequest;
 import com.michael.blog.payload.response.MessageResponse;
 import com.michael.blog.payload.response.PostResponse;
 import com.michael.blog.payload.response.PostResponsePagination;
 import com.michael.blog.repository.CategoryRepository;
+import com.michael.blog.repository.ImageDataRepository;
 import com.michael.blog.repository.PostRepository;
 import com.michael.blog.service.PostService;
 import com.michael.blog.service.UserService;
+import com.michael.blog.utility.ImageUtils;
 import jakarta.persistence.EntityNotFoundException;
+import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static com.michael.blog.constants.FileConstant.IMAGE_NOT_FOUND;
+
 @Service
+@RequiredArgsConstructor
 public class PostServiceImpl implements PostService {
 
     private final PostRepository postRepository;
     private final ModelMapper mapper;
     private final UserService userService;
     private final CategoryRepository categoryRepository;
+    private final ImageUtils imageUtils;
+    private final ImageDataRepository imageDataRepository;
 
-    public PostServiceImpl(PostRepository postRepository,
-                           ModelMapper mapper,
-                           UserService userService,
-                           CategoryRepository categoryRepository) {
-        this.postRepository = postRepository;
-        this.mapper = mapper;
-        this.userService = userService;
-        this.categoryRepository = categoryRepository;
-    }
 
     @Override
     public PostResponse createPost(PostRequest postRequest) {
@@ -54,6 +59,7 @@ public class PostServiceImpl implements PostService {
                 .user(user)
                 .category(category)
                 .likes(0)
+                .imageUrlSet(new HashSet<>())
                 .build();
         post = postRepository.save(post);
         return mapper.map(post, PostResponse.class);
@@ -101,6 +107,7 @@ public class PostServiceImpl implements PostService {
         Post post = getPostFromDB(postId);
         isPostBelongUser(post);
         postRepository.delete(post);
+        imageDataRepository.deleteAll(imageDataRepository.findAllByPostId(postId));
         return new MessageResponse(String.format("Post with id: %s was deleted", postId));
     }
 
@@ -120,7 +127,7 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public List<PostResponse> getPostsByCategory(Long categoryId) {
-        Category category = getCategoryFromDBById(categoryId);
+        getCategoryFromDBById(categoryId);
         return postRepository.findPostsByCategoryId(categoryId).stream()
                 .map(post -> mapper.map(post, PostResponse.class))
                 .collect(Collectors.toList());
@@ -152,6 +159,75 @@ public class PostServiceImpl implements PostService {
         }
         post = postRepository.save(post);
         return mapper.map(post, PostResponse.class);
+    }
+
+    @Override
+    public PostResponse addImageToPost(Long postId, List<MultipartFile> files) throws IOException {
+        User user = userService.getLoggedInUser();
+        Post post = getPostFromDB(postId);
+        isPostBelongUser(post, user);
+
+        if ((long) imageDataRepository.findAllByPostIdAndIsPostImage(post.getId(), true).size() == 5) {
+            throw new IllegalStateException("Can not add more than 5 objects to the database");
+        }
+
+        imageUtils.saveImagesToPost(user, post, files);
+        return mapper.map(post, PostResponse.class);
+    }
+
+
+    @Override
+    public byte[] viewPostImage(String username, Long postId, String fileName) {
+        userService.findUserByUsernameInDB(username);
+        Post post = getPostFromDB(postId);
+
+        ImageData imageData = imageDataRepository.findByFileNameAndPostId(fileName, post.getId())
+                .orElseThrow(() -> new ImageNotFoundException(IMAGE_NOT_FOUND));
+        return imageUtils.decompressImage(imageData.getData());
+    }
+
+    @Override
+    public List<byte[]> viewAllPostImages(Long postId) {
+        List<byte[]> photos = new ArrayList<>();
+        imageDataRepository.findAllByPostId(postId)
+                .forEach(photo -> photos.add(imageUtils.decompressImage(photo.getData())));
+        return photos;
+    }
+
+    @Override
+    public MessageResponse deletePostImage(Long postId, String filename) {
+        User user = userService.getLoggedInUser();
+        Post post = getPostFromDB(postId);
+        isPostBelongUser(post, user);
+        ImageData imageData = imageDataRepository.findByFileNameAndPostId(filename, postId)
+                .orElseThrow(() -> new ImageNotFoundException(IMAGE_NOT_FOUND));
+        post.removeImageURL(imageData.getImageURL());
+        postRepository.save(post);
+        imageDataRepository.delete(imageData);
+        return new MessageResponse(String.format("Image with file name %s was deleted", filename));
+    }
+
+    @Override
+    public MessageResponse deleteAllPostImages(Long postId) {
+        User user = userService.getLoggedInUser();
+        Post post = getPostFromDB(postId);
+        isPostBelongUser(post, user);
+        List<ImageData> imageDataList = imageDataRepository.findAllByPostIdAndIsPostImage(postId, true);
+        if (!imageDataList.isEmpty()) {
+            imageDataRepository.deleteAll(imageDataList);
+            post.getImageUrlSet().clear();
+            postRepository.save(post);
+            return new MessageResponse(String.format("All images from post with id %s was deleted", post.getId()));
+        } else {
+            return new MessageResponse("No photo to delete");
+        }
+
+    }
+
+    private void isPostBelongUser(Post post, User user) {
+        if (!post.getUser().getId().equals(user.getId())) {
+            throw new RuntimeException("This post doesn't belong to you, you can't add or remove image");
+        }
     }
 
 

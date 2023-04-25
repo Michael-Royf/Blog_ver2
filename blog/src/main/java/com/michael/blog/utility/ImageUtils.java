@@ -1,10 +1,13 @@
 package com.michael.blog.utility;
 
-import com.michael.blog.entity.ProfileImage;
-import com.michael.blog.entity.User;
+import com.michael.blog.entity.*;
 import com.michael.blog.exception.payload.ImageNotFoundException;
+import com.michael.blog.repository.CommentRepository;
+import com.michael.blog.repository.ImageDataRepository;
+import com.michael.blog.repository.PostRepository;
 import com.michael.blog.repository.ProfileImageRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
@@ -17,6 +20,7 @@ import java.net.URL;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Arrays;
+import java.util.List;
 import java.util.zip.Deflater;
 import java.util.zip.Inflater;
 
@@ -29,6 +33,12 @@ public class ImageUtils {
 
     @Autowired
     private ProfileImageRepository profileImageRepository;
+    @Autowired
+    private ImageDataRepository imageDataRepository;
+    @Autowired
+    private PostRepository postRepository;
+    @Autowired
+    private CommentRepository commentRepository;
 
     public void saveTempProfileImage(User user) throws IOException {
         ProfileImage profileImage = ProfileImage.builder()
@@ -67,6 +77,81 @@ public class ImageUtils {
         } else {
             throw new ImageNotFoundException(IMAGE_NOT_FOUND);
         }
+    }
+
+    public Comment saveImagesToComment(User user, Comment comment, List<MultipartFile> images) throws IOException {
+        if (!images.isEmpty()) {
+            for (MultipartFile m : images) {
+                if (!Arrays.asList(IMAGE_JPEG_VALUE, IMAGE_PNG_VALUE, IMAGE_GIF_VALUE).contains(m.getContentType())) {
+                    throw new RuntimeException(m.getOriginalFilename() + NOT_AN_IMAGE_FILE);
+                }
+            }
+            for (MultipartFile file : images) {
+                String filename = "post_" + comment.getPost().getId() + "comment_" + comment.getId() + "_image_" + RandomStringUtils.randomAlphanumeric(10) + DOT + JPG_EXTENSION;
+                ImageData imageData = ImageData.builder()
+                        .fileType(file.getContentType())
+                        .fileName(filename)
+                        .data(compressImage(file.getBytes()))
+                        .imageURL(setImageUrlToComment(user.getUsername(), comment, filename))
+                        .commentId(comment.getId())
+                        .postId(comment.getPost().getId())
+                        .build();
+
+                if ((long) imageDataRepository.findAllByPostIdAndCommentId(comment.getPost().getId(), comment.getId()).size() < 2) {
+                    imageDataRepository.save(imageData);
+                    comment.addImageURL(imageData.getImageURL());
+                }
+            }
+            return commentRepository.save(comment);
+        } else {
+            throw new ImageNotFoundException(IMAGE_NOT_FOUND);
+        }
+    }
+
+
+    public void saveImagesToPost(User user, Post post, List<MultipartFile> images) throws IOException {
+        if (!images.isEmpty()) {
+            for (MultipartFile m : images) {
+                if (!Arrays.asList(IMAGE_JPEG_VALUE, IMAGE_PNG_VALUE, IMAGE_GIF_VALUE).contains(m.getContentType())) {
+                    throw new RuntimeException(m.getOriginalFilename() + NOT_AN_IMAGE_FILE);
+                }
+            }
+
+            for (MultipartFile file : images) {
+                String filename = "post_" + post.getId() + "_image_" + RandomStringUtils.randomAlphanumeric(10) + DOT + JPG_EXTENSION;
+                ImageData imageData = ImageData.builder()
+                        .fileType(file.getContentType())
+                        .fileName(filename)
+                        .data(compressImage(file.getBytes()))
+                        .imageURL(setImageUrlToPost(user.getUsername(), post, filename))
+                        .postId(post.getId())
+                        .isPostImage(true)
+                        .build();
+
+                if ((long) imageDataRepository.findAllByPostIdAndIsPostImage(post.getId(), true).size() < 5) {
+                    imageDataRepository.save(imageData);
+                    post.addImageURL(imageData.getImageURL());
+                }
+                postRepository.save(post);
+            }
+        } else {
+            throw new ImageNotFoundException(IMAGE_NOT_FOUND);
+        }
+    }
+
+
+    private String setImageUrlToPost(String username, Post post, String filename) {
+        return ServletUriComponentsBuilder.fromCurrentContextPath()
+                .path(PATH_PREFIX + POST_IMAGE_PATH + username + FORWARD_SLASH + post.getId() + FORWARD_SLASH
+                        + filename).toUriString();
+    }
+
+
+    private String setImageUrlToComment(String username, Comment comment, String filename) {
+        return ServletUriComponentsBuilder.fromCurrentContextPath()
+                .path(PATH_PREFIX + "post" + FORWARD_SLASH + comment.getPost().getId() + FORWARD_SLASH
+                        + username + FORWARD_SLASH + "comment" + FORWARD_SLASH + comment.getId() + FORWARD_SLASH + "image" + FORWARD_SLASH
+                        + filename).toUriString();
     }
 
 

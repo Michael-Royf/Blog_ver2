@@ -2,6 +2,9 @@ package com.michael.blog.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+
+import java.sql.Types;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -9,10 +12,16 @@ import lombok.*;
 @Setter
 @Builder
 @Entity
-@Table(name = "profile_image")
+@Table(name = "profile_images")
 public class ProfileImage {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @SequenceGenerator(
+            name = "profileImage_sequence",
+            sequenceName = "profileImage_sequence",
+            allocationSize = 1
+    )
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "profileImage_sequence")
+//    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false, unique = true, name = "file_name")
@@ -20,7 +29,8 @@ public class ProfileImage {
     @Column(name = "file_type", nullable = false)
     private String fileType;
     @Lob
-    @Column(columnDefinition = "longblob")
+    @JdbcTypeCode(Types.BINARY)
+//    @Column(columnDefinition = "longblob")
     private byte[] data;
     @Column(name = "profile_image_URL")
     private String profileImageURL;

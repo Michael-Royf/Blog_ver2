@@ -338,7 +338,8 @@ public class UserServiceImpl implements UserService {
         return userRepository.findByUsername(username);
     }
 
-    private User findUserByUsernameInDB(String username) {
+    @Override
+    public User findUserByUsernameInDB(String username) {
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException(NO_USER_FOUND_BY_USERNAME + username));
     }

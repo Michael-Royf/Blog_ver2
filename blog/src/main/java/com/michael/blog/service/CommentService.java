@@ -5,7 +5,9 @@ import com.michael.blog.entity.Post;
 import com.michael.blog.payload.request.CommentRequest;
 import com.michael.blog.payload.response.CommentResponse;
 import com.michael.blog.payload.response.MessageResponse;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 public interface CommentService {
@@ -27,4 +29,13 @@ public interface CommentService {
     void isCommentBelongUser(Comment comment);
 
     CommentResponse likeComment(Long commentId);
+
+
+    CommentResponse addImageToComment(Long postId, Long commentId, List<MultipartFile> files) throws IOException;
+
+    byte[] viewCommentImage(String username, Long postId, Long commentId, String filename);
+
+    MessageResponse deleteCommentImage(Long postId, Long commentId, String filename);
+
+    MessageResponse deleteAllCommentImages(Long postId, Long commentId);
 }

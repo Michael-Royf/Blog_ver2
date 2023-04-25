@@ -1,41 +1,43 @@
 package com.michael.blog.service.impl;
 
 import com.michael.blog.entity.Comment;
+import com.michael.blog.entity.ImageData;
 import com.michael.blog.entity.Post;
 import com.michael.blog.entity.User;
 import com.michael.blog.exception.payload.CommentNotFoundException;
+import com.michael.blog.exception.payload.ImageNotFoundException;
 import com.michael.blog.exception.payload.PostNotFoundException;
 import com.michael.blog.payload.request.CommentRequest;
 import com.michael.blog.payload.response.CommentResponse;
 import com.michael.blog.payload.response.MessageResponse;
 import com.michael.blog.repository.CommentRepository;
+import com.michael.blog.repository.ImageDataRepository;
 import com.michael.blog.repository.PostRepository;
 import com.michael.blog.service.CommentService;
 import com.michael.blog.service.UserService;
+import com.michael.blog.utility.ImageUtils;
+import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class CommentServiceImpl implements CommentService {
 
     private final CommentRepository commentRepository;
     private final PostRepository postRepository;
     private final ModelMapper mapper;
     private final UserService userService;
+    private final ImageUtils imageUtils;
+    private final ImageDataRepository imageDataRepository;
 
-    public CommentServiceImpl(CommentRepository commentRepository,
-                              PostRepository postRepository,
-                              ModelMapper mapper,
-                              UserService userService) {
-        this.commentRepository = commentRepository;
-        this.postRepository = postRepository;
-        this.mapper = mapper;
-        this.userService = userService;
-    }
 
     @Override
     public CommentResponse createComment(Long postId, CommentRequest commentRequest) {
@@ -47,6 +49,7 @@ public class CommentServiceImpl implements CommentService {
                 .post(post)
                 .user(user)
                 .likes(0)
+                .imageUrlSet(new HashSet<>())
                 .build();
         comment = commentRepository.save(comment);
         return mapper.map(comment, CommentResponse.class);
@@ -87,6 +90,7 @@ public class CommentServiceImpl implements CommentService {
         isCommentBelongPost(post, comment);
         isCommentBelongUser(comment);
         commentRepository.delete(comment);
+        imageDataRepository.deleteAll(imageDataRepository.findAllByPostIdAndCommentId(postId, commentId));
         return new MessageResponse(String.format("Comment with id: %s was deleted", commentId));
     }
 
@@ -129,6 +133,71 @@ public class CommentServiceImpl implements CommentService {
         }
         comment = commentRepository.save(comment);
         return mapper.map(comment, CommentResponse.class);
+    }
+
+    @Override
+    public CommentResponse addImageToComment(Long postId, Long commentId, List<MultipartFile> files) throws IOException {
+        User user = userService.getLoggedInUser();
+        getPostFromDB(postId);
+        Comment comment = getCommentFromDB(commentId);
+        if (!comment.getUser().getId().equals(user.getId())) {
+            throw new RuntimeException("This comment doesn't belong to you, you can't add image");
+        }
+        if ((long) imageDataRepository.findAllByPostIdAndCommentId(comment.getPost().getId(), comment.getId()).size() == 2) {
+            throw new IllegalStateException("Can not add more than 2 objects to the database");
+        }
+
+        comment = imageUtils.saveImagesToComment(user, comment, files);
+        return mapper.map(comment, CommentResponse.class);
+    }
+
+    @Override
+    public byte[] viewCommentImage(String username, Long postId, Long commentId, String filename) {
+        userService.findUserByUsernameInDB(username);
+        Post post = getPostFromDB(postId);
+        Comment comment = getCommentFromDB(commentId);
+        ImageData imageData = imageDataRepository
+                .findByPostIdAndCommentIdAndFileName(post.getId(), comment.getId(), filename)
+                .orElseThrow(() -> new ImageNotFoundException("Image Not Found"));
+
+        return imageUtils.decompressImage(imageData.getData());
+    }
+
+
+    @Override
+    public MessageResponse deleteCommentImage(Long postId, Long commentId, String filename) {
+        User user = userService.getLoggedInUser();
+        Post post = getPostFromDB(postId);
+        Comment comment = getCommentFromDB(commentId);
+        if (!comment.getUser().getId().equals(user.getId())) {
+            throw new RuntimeException("This comment doesn't belong to you, you can't delete image");
+        }
+        ImageData imageData = imageDataRepository
+                .findByPostIdAndCommentIdAndFileName(post.getId(), comment.getId(), filename)
+                .orElseThrow(() -> new ImageNotFoundException("Image Not Found"));
+        imageDataRepository.delete(imageData);
+        comment.removeImageURL(imageData.getImageURL());
+        commentRepository.save(comment);
+        return new MessageResponse(String.format("Image with file name %s was deleted", filename));
+    }
+
+    @Override
+    public MessageResponse deleteAllCommentImages(Long postId, Long commentId) {
+        User user = userService.getLoggedInUser();
+        getPostFromDB(postId);
+        Comment comment = getCommentFromDB(commentId);
+        if (!comment.getUser().getId().equals(user.getId())) {
+            throw new RuntimeException("This comment doesn't belong to you, you can't delete image");
+        }
+        List<ImageData> imageDataList = imageDataRepository.findAllByPostIdAndCommentId(postId, commentId);
+
+        if (!imageDataList.isEmpty()) {
+            imageDataRepository.deleteAll(imageDataList);
+            comment.getImageUrlSet().clear();
+            commentRepository.save(comment);
+            return new MessageResponse(String.format("All images from comment with id %s was deleted", commentId));
+        }
+        return new MessageResponse("No photo to delete");
     }
 
     private Post getPostFromDB(Long postId) {
