@@ -6,6 +6,7 @@ import com.michael.blog.entity.Post;
 import com.michael.blog.entity.User;
 import com.michael.blog.exception.payload.ImageNotFoundException;
 import com.michael.blog.exception.payload.PostNotFoundException;
+import com.michael.blog.exception.payload.UsernameExistException;
 import com.michael.blog.payload.request.PostRequest;
 import com.michael.blog.payload.response.MessageResponse;
 import com.michael.blog.payload.response.PostResponse;
@@ -51,6 +52,9 @@ public class PostServiceImpl implements PostService {
     public PostResponse createPost(PostRequest postRequest) {
         Category category = getCategoryFromDBById(postRequest.getCategoryId());
         User user = userService.getLoggedInUser();
+        if (postRepository.findPostByTitle(postRequest.getTitle()).isPresent()) {
+            throw new RuntimeException("Title already exists");
+        }
         Post post = Post.builder()
                 .username(user.getUsername())
                 .title(postRequest.getTitle())
@@ -90,7 +94,7 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public List<PostResponse> getMyPosts() {
-        List<Post> posts = postRepository.getAllByUserId(userService.getLoggedInUser().getId());
+        List<Post> posts = postRepository.findAllByUserId(userService.getLoggedInUser().getId());
         return posts.stream()
                 .map(post -> mapper.map(post, PostResponse.class))
                 .collect(Collectors.toList());

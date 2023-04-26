@@ -35,10 +35,7 @@ public class ImageData {
     private byte[] data;
     @Column(nullable = false, name = "image_URL", unique = true)
     private String imageURL;
-
-
     private Boolean isPostImage;
-
     @Column(name = "post_id")
     private Long postId;
 

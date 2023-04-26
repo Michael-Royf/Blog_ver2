@@ -5,12 +5,14 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface PostRepository extends JpaRepository<Post, Long> {
-    List<Post> getPostByUserId(Long userId);
 
-    List<Post> getAllByUserId(Long userId);
+    List<Post> findAllByUserId(Long userId);
 
     List<Post> findPostsByCategoryId(Long categoryId);
+
+    Optional<Post> findPostByTitle(String title);
 }

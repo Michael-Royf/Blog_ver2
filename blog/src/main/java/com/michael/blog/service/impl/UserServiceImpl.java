@@ -12,6 +12,7 @@ import com.michael.blog.exception.payload.ImageNotFoundException;
 import com.michael.blog.exception.payload.UserNotFoundException;
 import com.michael.blog.exception.payload.UsernameExistException;
 import com.michael.blog.payload.request.LoginRequest;
+import com.michael.blog.payload.request.PasswordChangeRequest;
 import com.michael.blog.payload.request.UserRequest;
 import com.michael.blog.payload.response.JwtAuthResponse;
 import com.michael.blog.payload.response.MessageResponse;
@@ -93,14 +94,14 @@ public class UserServiceImpl implements UserService {
     @Override
     public String register(UserRequest registerRequest) throws IOException {
         validateNewUsernameAndEmail(StringUtils.EMPTY, registerRequest.getUsername(), registerRequest.getEmail());
-        String password = randomUtils.generatePassword();
+        //  String password = randomUtils.generatePassword();
         User user = User.builder()
                 //   .generateId(generateUserID())
                 .firstName(registerRequest.getFirstName())
                 .lastName(registerRequest.getLastName())
                 .email(registerRequest.getEmail())
                 .username(registerRequest.getUsername())
-                .password(passwordEncoder.encode(password))
+                .password(passwordEncoder.encode(registerRequest.getPassword()))
                 .role(UserRole.ROLE_ADMIN)
                 .lastLoginDate(new Date())
                 .isNotLocked(true)
@@ -122,7 +123,7 @@ public class UserServiceImpl implements UserService {
         emailSender.sendEmailForVerification(
                 user.getEmail(),
                 emailBuilder.buildEmailForConfirmationEmail(user.getFirstName(), link));
-        emailSender.sendNewPassword(user.getEmail(), user.getFirstName(), password);
+        //     emailSender.sendNewPassword(user.getEmail(), user.getFirstName(), password);
         return "User registered successfully!";
     }
 
@@ -136,7 +137,7 @@ public class UserServiceImpl implements UserService {
         String username = authenticate.getName();
         User user = findUserByUsernameInDB(username);
         String jwtAccessToken = jwtTokenProvider.generateAccessToken(username);
-        String jwtRefreshToken = jwtTokenProvider.generateRefreshToken(username);
+        String jwtRefreshToken = jwtTokenProvider.generateToken(username);
 
         Token token = createTokenForDB(user, jwtAccessToken);
         revokeAllUserTokens(user);
@@ -245,19 +246,19 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public String changePassword(String oldPassword, String newPassword) {
+    public String changePassword(PasswordChangeRequest passwordChangeRequest) {
         User user = getLoggedInUser();
-        if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
+        if (!passwordEncoder.matches(passwordChangeRequest.getOldPassword(), user.getPassword())) {
             throw new RuntimeException("The old password was entered incorrectly");
         }
-        user.setPassword(passwordEncoder.encode(newPassword));
+        user.setPassword(passwordEncoder.encode(passwordChangeRequest.getNewPassword()));
         userRepository.save(user);
         return "Password was updated";
     }
 
 
     @Override
-    public String forgotPassword(String email) {
+    public String resetPassword(String email) {
         User user = findUserByEmail(email)
                 .orElseThrow(() -> new RuntimeException(NO_USER_FOUND_BY_EMAIL + email));
         String newPassword = randomUtils.generatePassword();

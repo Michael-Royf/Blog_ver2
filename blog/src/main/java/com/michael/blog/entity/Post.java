@@ -8,6 +8,7 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
@@ -18,8 +19,9 @@ import java.util.Set;
 @Setter
 @Builder
 @Entity
-@Table(name = "posts", uniqueConstraints = {@UniqueConstraint(columnNames = "title")})
-public class Post {
+@Table(name = "posts")
+public class Post implements Serializable {
+    private static final long serialVersionUID = 1L;
     @Id
     @SequenceGenerator(
             name = "post_sequence",
@@ -27,14 +29,13 @@ public class Post {
             allocationSize = 1
     )
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "post_sequence")
-   // @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "post_id", updatable = false)
     private Long id;
 
     @Column(nullable = false)
     private String username;
 
-    @Column(name = "title", nullable = false)
+    @Column(name = "title", nullable = false, unique = true)
     private String title;
     @Column(name = "description", nullable = false)
     private String description;

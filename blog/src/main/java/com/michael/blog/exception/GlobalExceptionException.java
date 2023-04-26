@@ -3,6 +3,7 @@ package com.michael.blog.exception;
 import com.michael.blog.exception.payload.*;
 import com.michael.blog.payload.response.HttpResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -137,11 +138,12 @@ public class GlobalExceptionException extends ResponseEntityExceptionHandler {
         body.put("timestamp", new Date());
         body.put("statusCode", HttpStatus.BAD_REQUEST.value());
         List<String> errors = ex.getBindingResult()
-                .getFieldErrors()
+                .getAllErrors()
                 .stream()
-                .map(x -> x.getDefaultMessage())
+                .map(DefaultMessageSourceResolvable::getDefaultMessage)
                 .collect(Collectors.toList());
         body.put("messages", errors);
         return new ResponseEntity<Object>(body, HttpStatus.BAD_REQUEST);
     }
+
 }

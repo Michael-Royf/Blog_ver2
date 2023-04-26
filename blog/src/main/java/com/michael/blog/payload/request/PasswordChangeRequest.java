@@ -1,7 +1,8 @@
 package com.michael.blog.payload.request;
 
+import com.michael.blog.validation.PasswordMatches;
+import com.michael.blog.validation.ValidPassword;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import lombok.*;
 
 @AllArgsConstructor
@@ -9,10 +10,16 @@ import lombok.*;
 @Getter
 @Setter
 @Builder
-public class PasswordRequest {
+@PasswordMatches
+public class PasswordChangeRequest {
     @NotBlank(message = "Old password should not be empty")
     private String oldPassword;
+
     @NotBlank(message = "New password should not be empty")
-    @Size(min = 6, message = "New password should have at least 6 characters")
+    @ValidPassword
     private String newPassword;
+
+    @NotBlank(message = "New password should not be empty")
+    @ValidPassword
+    private String matchingPassword;
 }

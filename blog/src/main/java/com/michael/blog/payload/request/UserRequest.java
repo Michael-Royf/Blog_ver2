@@ -1,5 +1,7 @@
 package com.michael.blog.payload.request;
 
+import com.michael.blog.validation.PasswordMatches;
+import com.michael.blog.validation.ValidPassword;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
@@ -9,6 +11,7 @@ import lombok.*;
 @Getter
 @Setter
 @Builder
+@PasswordMatches
 public class UserRequest {
     @NotBlank(message = "First name should not be empty")
     private String firstName;
@@ -19,4 +22,11 @@ public class UserRequest {
     @Email
     @NotBlank(message = "Email should not be empty")
     private String email;
+
+    @NotBlank(message = "Password should not be empty")
+    @ValidPassword
+    private String password;
+    @NotBlank(message = "Password should not be empty")
+    @ValidPassword
+    private String matchingPassword;
 }

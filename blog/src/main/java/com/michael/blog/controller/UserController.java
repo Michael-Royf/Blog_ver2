@@ -2,7 +2,7 @@ package com.michael.blog.controller;
 
 import com.michael.blog.payload.request.EmailRequest;
 import com.michael.blog.payload.request.LoginRequest;
-import com.michael.blog.payload.request.PasswordRequest;
+import com.michael.blog.payload.request.PasswordChangeRequest;
 import com.michael.blog.payload.request.UserRequest;
 import com.michael.blog.payload.response.JwtAuthResponse;
 import com.michael.blog.payload.response.MessageResponse;
@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -28,14 +29,10 @@ import static org.springframework.http.MediaType.IMAGE_JPEG_VALUE;
 @RestController
 @RequestMapping("/api/v1/")
 @Tag(name = "CRUD REST APIs for User Resource")
+@RequiredArgsConstructor
 public class UserController {
 
     private final UserService userService;
-
-    public UserController(UserService userService) {
-        this.userService = userService;
-    }
-
 
     @Operation(
             summary = "Create User Rest API",
@@ -124,9 +121,8 @@ public class UserController {
             responseCode = "200",
             description = "Http Status 200 SUCCESS")
     @PostMapping("/user/changepassword")
-    public ResponseEntity<String> changePassword(@RequestBody @Valid PasswordRequest passwordRequest) {
-        return new ResponseEntity<>(userService.changePassword(passwordRequest.getOldPassword(),
-                passwordRequest.getNewPassword()), HttpStatus.OK);
+    public ResponseEntity<String> changePassword(@RequestBody @Valid PasswordChangeRequest passwordChangeRequest) {
+        return new ResponseEntity<>(userService.changePassword(passwordChangeRequest), HttpStatus.OK);
     }
 
     @Operation(
@@ -136,8 +132,8 @@ public class UserController {
             responseCode = "200",
             description = "Http Status 200 SUCCESS")
     @PostMapping("/forgot-password")
-    public ResponseEntity<String> forgotPassword(@RequestBody @Valid EmailRequest email) {
-        return new ResponseEntity<>(userService.forgotPassword(email.getEmail()), HttpStatus.OK);
+    public ResponseEntity<String> resetPassword(@RequestBody @Valid EmailRequest email) {
+        return new ResponseEntity<>(userService.resetPassword(email.getEmail()), HttpStatus.OK);
     }
 
 

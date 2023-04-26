@@ -2,6 +2,7 @@ package com.michael.blog.service;
 
 import com.michael.blog.entity.User;
 import com.michael.blog.payload.request.LoginRequest;
+import com.michael.blog.payload.request.PasswordChangeRequest;
 import com.michael.blog.payload.request.UserRequest;
 import com.michael.blog.payload.response.JwtAuthResponse;
 import com.michael.blog.payload.response.MessageResponse;
@@ -20,7 +21,6 @@ public interface UserService {
 
     JwtAuthResponse refreshToken(HttpServletRequest request, HttpServletResponse response);
 
-
     UserResponse getUserById(Long id);
 
     UserResponse getMyProfile();
@@ -33,11 +33,11 @@ public interface UserService {
 
     User getLoggedInUser();
 
-    String changePassword(String oldPassword, String newPassword);
+    String changePassword(PasswordChangeRequest passwordChangeRequest);
 
     String confirmToken(String token);
 
-    String forgotPassword(String email);
+    String resetPassword(String email);
 
     UserResponse updateProfileImage(MultipartFile profileImage) throws IOException;
 
@@ -46,6 +46,5 @@ public interface UserService {
     MessageResponse deleteProfileImage() throws IOException;
 
     byte[] getProfileImage(String username, String fileName) throws IOException;
-
 
 }

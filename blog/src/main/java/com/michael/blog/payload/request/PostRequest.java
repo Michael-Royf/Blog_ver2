@@ -18,6 +18,6 @@ public class PostRequest {
     private String description;
     @NotBlank(message = "Content should not be null or empty")
     private String content;
-   // @NotBlank(message = "Category Id should not be null or empty")
+  //@NotBlank(message = "Category Id should not be null or empty")
     private Long categoryId;
 }

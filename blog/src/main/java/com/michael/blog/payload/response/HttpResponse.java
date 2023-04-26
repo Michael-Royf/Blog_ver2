@@ -13,7 +13,7 @@ import java.util.Date;
 @Setter
 public class HttpResponse {
 
-    @JsonFormat(pattern = "yyyy-mm-dd HH:mm:ss", timezone = "Israel")
+    @JsonFormat(pattern = "yyyy-mm-dd HH:mm:ss", timezone = "Jerusalem")
     private Date timestamp;
     private int httpStatusCode;
     private HttpStatus httpStatus;

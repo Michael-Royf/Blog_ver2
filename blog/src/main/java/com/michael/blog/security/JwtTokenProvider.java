@@ -5,7 +5,6 @@ import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
@@ -23,39 +22,22 @@ public class JwtTokenProvider {
 
     // generate access JWT token
     public String generateAccessToken(String username) {
-        String token = generateRefreshToken(username, EXPIRATION_TIME_FOR_ACCESS_TOKEN);
-    //    String token = generateRefreshToken( username, EXPIRATION_TIME_FOR_REFRESH_TOKEN);
-        return token;
+        return generateToken(username, EXPIRATION_TIME_FOR_ACCESS_TOKEN);
     }
 
     // generate refresh JWT token
-    public String generateRefreshToken(String username) {
-       // String token = generateToken(authentication, EXPIRATION_TIME_FOR_REFRESH_TOKEN);
-        String token = generateRefreshToken( username, EXPIRATION_TIME_FOR_REFRESH_TOKEN);
-        return token;
+    public String generateToken(String username) {
+        return generateToken(username, EXPIRATION_TIME_FOR_REFRESH_TOKEN);
     }
 
-    // generate  JWT token
-    public String generateToken(Authentication authentication, long expirationTime) {
-        String username = authentication.getName();
-        String token = Jwts.builder()
+    // generate token
+    private String generateToken(String username, long expirationTime) {
+        return Jwts.builder()
                 .setSubject(username)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + expirationTime))
                 .signWith(key())
                 .compact();
-        return token;
-    }
-
-    public String generateRefreshToken(String username, long expirationTime) {
-
-        String token = Jwts.builder()
-                .setSubject(username)
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + expirationTime))
-                .signWith(key())
-                .compact();
-        return token;
     }
 
 
@@ -97,14 +79,3 @@ public class JwtTokenProvider {
 }
 
 
-// generate access JWT token
-//    public String generateAccessToken(Authentication authentication) {
-//        String username = authentication.getName();
-//        String token = Jwts.builder()
-//                .setSubject(username)
-//                .setIssuedAt(new Date())
-//                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME_FOR_ACCESS_TOKEN))
-//                .signWith(key())
-//                .compact();
-//        return token;
-//    }
