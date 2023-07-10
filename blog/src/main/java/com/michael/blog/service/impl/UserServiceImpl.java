@@ -13,20 +13,27 @@ import com.michael.blog.exception.payload.UserNotFoundException;
 import com.michael.blog.exception.payload.UsernameExistException;
 import com.michael.blog.payload.request.LoginRequest;
 import com.michael.blog.payload.request.PasswordChangeRequest;
+import com.michael.blog.payload.request.UpdateUserRequest;
 import com.michael.blog.payload.request.UserRequest;
 import com.michael.blog.payload.response.JwtAuthResponse;
 import com.michael.blog.payload.response.MessageResponse;
 import com.michael.blog.payload.response.UserResponse;
-import com.michael.blog.repository.*;
+import com.michael.blog.repository.ConfirmationTokenRepository;
+import com.michael.blog.repository.ProfileImageRepository;
+import com.michael.blog.repository.TokenRepository;
+import com.michael.blog.repository.UserRepository;
 import com.michael.blog.security.JwtTokenProvider;
 import com.michael.blog.service.ConfirmationTokenService;
 import com.michael.blog.service.EmailSender;
 import com.michael.blog.service.UserService;
 import com.michael.blog.utility.EmailBuilder;
 import com.michael.blog.utility.ImageUtils;
+import com.michael.blog.utility.IpLocationUtils;
 import com.michael.blog.utility.RandomUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.modelmapper.ModelMapper;
@@ -55,6 +62,8 @@ import static com.michael.blog.constants.UserConstant.*;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
+//@CacheConfig(cacheNames = {"users"})
 public class UserServiceImpl implements UserService {
 
     public static final String LINK_FOR_CONFIRMATION = "http://localhost:8080/api/v1/registration/confirm?token=";
@@ -69,45 +78,36 @@ public class UserServiceImpl implements UserService {
     private final ConfirmationTokenRepository confirmationTokenRepository;
     private final EmailBuilder emailBuilder;
     private final EmailSender emailSender;
-    private final ImageDataRepository imageDataRepository;
     private final ImageUtils imageUtils;
     private final RandomUtils randomUtils;
     private final ProfileImageRepository profileImageRepository;
+    private final IpLocationUtils ipLocationUtils;
+    private final DeviceService deviceService;
+    private final HttpServletRequest request;
+    // private final CacheManager cacheManager;
 
-    public UserServiceImpl(ModelMapper mapper, AuthenticationManager authenticationManager, UserRepository userRepository, TokenRepository tokenRepository, PasswordEncoder passwordEncoder, JwtTokenProvider jwtTokenProvider, ConfirmationTokenService tokenService, ConfirmationTokenRepository confirmationTokenRepository, EmailBuilder emailBuilder, EmailSender emailSender, ImageDataRepository imageDataRepository, ImageUtils imageUtils, RandomUtils randomUtils, ProfileImageRepository profileImageRepository) {
-        this.mapper = mapper;
-        this.authenticationManager = authenticationManager;
-        this.userRepository = userRepository;
-        this.tokenRepository = tokenRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.jwtTokenProvider = jwtTokenProvider;
-        this.tokenService = tokenService;
-        this.confirmationTokenRepository = confirmationTokenRepository;
-        this.emailBuilder = emailBuilder;
-        this.emailSender = emailSender;
-        this.imageDataRepository = imageDataRepository;
-        this.imageUtils = imageUtils;
-        this.randomUtils = randomUtils;
-        this.profileImageRepository = profileImageRepository;
-    }
-
+    @SneakyThrows
     @Override
     public String register(UserRequest registerRequest) throws IOException {
-        validateNewUsernameAndEmail(StringUtils.EMPTY, registerRequest.getUsername(), registerRequest.getEmail());
-        //  String password = randomUtils.generatePassword();
+
+        validateNewUsernameAndEmail(
+                StringUtils.EMPTY,
+                registerRequest.getUsername().trim(),
+                registerRequest.getEmail().trim().toLowerCase());
+
         User user = User.builder()
-                //   .generateId(generateUserID())
-                .firstName(registerRequest.getFirstName())
-                .lastName(registerRequest.getLastName())
-                .email(registerRequest.getEmail())
-                .username(registerRequest.getUsername())
+                .firstName(firstLetterUpper(registerRequest.getFirstName()))
+                .lastName(firstLetterUpper(registerRequest.getLastName()))
+                .email(registerRequest.getEmail().trim().toLowerCase())
+                .username(registerRequest.getUsername().trim())
                 .password(passwordEncoder.encode(registerRequest.getPassword()))
                 .role(UserRole.ROLE_ADMIN)
                 .lastLoginDate(new Date())
                 .isNotLocked(true)
                 .build();
         imageUtils.saveTempProfileImage(user);
-        userRepository.save(user);
+        user = userRepository.save(user);
+        //ipLocationUtils.getLocationFromRequest();
 
         String token = randomUtils.generateTokenForVerification();
         ConfirmationToken confirmationToken =
@@ -118,20 +118,23 @@ public class UserServiceImpl implements UserService {
                         .user(user)
                         .build();
         tokenService.saveConfirmationToken(confirmationToken);
+        deviceService.verifyDevice(user, request);
 
         String link = LINK_FOR_CONFIRMATION + token;
         emailSender.sendEmailForVerification(
                 user.getEmail(),
                 emailBuilder.buildEmailForConfirmationEmail(user.getFirstName(), link));
         //     emailSender.sendNewPassword(user.getEmail(), user.getFirstName(), password);
-        return "User registered successfully!";
+        return "User registered successfully! \n" +
+                "Check your email address.";
     }
+
 
     @Override
     public JwtAuthResponse login(LoginRequest loginRequest) {
         Authentication authenticate = authenticationManager
                 .authenticate(new UsernamePasswordAuthenticationToken(
-                        loginRequest.getUsername(),
+                        loginRequest.getUsernameOrEmail(),
                         loginRequest.getPassword()));
         SecurityContextHolder.getContext().setAuthentication(authenticate);
         String username = authenticate.getName();
@@ -198,6 +201,7 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
+    //  @Cacheable(key = "#id")
     public UserResponse getUserById(Long id) {
         User user = getUserFromDbById(id);
         return mapper.map(user, UserResponse.class);
@@ -210,16 +214,30 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserResponse updateUser(UserRequest userRequest) {
+    // @CachePut(key = "#id")
+    public UserResponse updateUser(UpdateUserRequest userRequest) {
         User user = getLoggedInUser();
-        user.setFirstName(userRequest.getFirstName());
-        user.setLastName(userRequest.getLastName());
-//TODO:
+
+        validateNewUsernameAndEmail(
+                user.getUsername(),
+                userRequest.getUsername().trim(),
+                userRequest.getEmail().trim().toLowerCase());
+
+        user.setFirstName(firstLetterUpper(userRequest.getFirstName()));
+        user.setLastName(firstLetterUpper(userRequest.getLastName()));
+        user.setUsername(userRequest.getUsername().trim().toLowerCase());
+        user.setEmail(userRequest.getEmail());
+
+        // Обновление кэша для метода getUserByUsername
+//        String usernameCacheKey = user.getUsername();
+//        Cache userByUsernameCache = cacheManager.getCache("users");
+//        userByUsernameCache.put(usernameCacheKey, mapper.map(user, UserResponse.class));
         return mapper.map(user, UserResponse.class);
     }
 
 
     @Override
+    // @CacheEvict(allEntries = true)
     public String deleteUser() {
         User user = getLoggedInUser();
         userRepository.delete(user);
@@ -256,6 +274,11 @@ public class UserServiceImpl implements UserService {
         return "Password was updated";
     }
 
+    @Override
+    public User findUserByUsernameInDB(String username) {
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException(NO_USER_FOUND_BY_USERNAME + username));
+    }
 
     @Override
     public String resetPassword(String email) {
@@ -330,6 +353,22 @@ public class UserServiceImpl implements UserService {
         }
     }
 
+    private String firstLetterUpper(String world) {
+        String[] words = world.split(" ");
+        StringBuilder result = new StringBuilder();
+
+        for (String word : words) {
+            if (word.length() > 0) {
+                char firstChar = Character.toUpperCase(word.charAt(0));
+                String capitalizedWord = firstChar + word.substring(1).toLowerCase();
+                result.append(capitalizedWord).append(" ");
+            }
+        }
+        return result.toString().trim();
+    }
+
+
+
     private User getUserFromDbById(Long userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(String.format(UserConstant.NO_USER_FOUND_BY_ID, userId)));
@@ -337,12 +376,6 @@ public class UserServiceImpl implements UserService {
 
     private Optional<User> findOptionalUserByUsername(String username) {
         return userRepository.findByUsername(username);
-    }
-
-    @Override
-    public User findUserByUsernameInDB(String username) {
-        return userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException(NO_USER_FOUND_BY_USERNAME + username));
     }
 
 

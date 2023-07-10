@@ -29,6 +29,7 @@ services:
       - postgres
     restart: unless-stopped
 
+
   maildev:
     container_name: maildev
     image: maildev/maildev
@@ -40,11 +41,59 @@ services:
     restart: unless-stopped
 
 
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.4.0
+    container_name: elasticsearch
+    restart: always
+    environment:
+      - xpack.security.enabled=false
+      - discovery.type=single-node
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    cap_add:
+      - IPC_LOCK
+    volumes:
+      - elasticsearch-data-volume:/usr/share/elasticsearch/data
+    ports:
+      - 9200:9200
+      - 9300:9300
+  kibana:
+    container_name: kibana
+    image: docker.elastic.co/kibana/kibana:7.4.0
+    restart: always
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    ports:
+      - 5601:5601
+    depends_on:
+      - elasticsearch
+
+#  sonarqube:
+#    image: sonarqube
+#    ports:
+#      - "9000:9000"
+##    environment:
+##      - SONARQUBE_JDBC_USERNAME=sonar
+##      - SONARQUBE_JDBC_PASSWORD=sonar
+##      - SONARQUBE_JDBC_URL=jdbc:postgresql://postgres:5432/sonarqube
+#    networks:
+#      - postgres
+#    restart: unless-stopped
+
+
 
 networks:
+  elasticsearch-data-volume:
+    driver: local
   postgres:
     driver: bridge
 
 volumes:
   postgres:
   pgadmin:
+  elasticsearch-data-volume:

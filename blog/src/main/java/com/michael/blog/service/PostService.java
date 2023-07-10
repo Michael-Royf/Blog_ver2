@@ -26,6 +26,8 @@ public interface PostService {
 
     List<PostResponse> getPostsByCategory(Long categoryId);
 
+    List<PostResponse> searchPosts(String query);
+
     void isPostBelongUser(Post post);
 
     PostResponse likePost(Long postId);
@@ -37,7 +39,6 @@ public interface PostService {
     List<byte[]> viewAllPostImages(Long postId);
 
     MessageResponse deletePostImage(Long postId, String filename);
-
 
     MessageResponse deleteAllPostImages(Long postId);
 

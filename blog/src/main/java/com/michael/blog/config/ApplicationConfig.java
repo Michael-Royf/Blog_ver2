@@ -16,6 +16,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import ua_parser.Parser;
 
 import java.io.IOException;
 import java.util.Date;
@@ -34,6 +35,11 @@ public class ApplicationConfig {
         this.userRepository = userRepository;
         this.loginAttemptService = loginAttemptService;
         this.imageUtils = imageUtils;
+    }
+
+    @Bean
+    public Parser parser(){
+        return new Parser();
     }
 
     @Bean
@@ -61,9 +67,9 @@ public class ApplicationConfig {
 
     @Bean
     public UserDetailsService userDetailsService() {
-        return username -> {
-            User user = userRepository.findByUsername(username)
-                    .orElseThrow(() -> new UsernameNotFoundException(String.format("User with username %s not found", username)));
+        return usernameOrEmail  -> {
+            User user = userRepository.findByUsernameOrEmail(usernameOrEmail, usernameOrEmail)
+                    .orElseThrow(() -> new UsernameNotFoundException(String.format("User with username %s not found", usernameOrEmail)));
             validateLoginAttempt(user);
             user.setDisplayLastLoginDate(user.getLastLoginDate());
             user.setLastLoginDate(new Date());

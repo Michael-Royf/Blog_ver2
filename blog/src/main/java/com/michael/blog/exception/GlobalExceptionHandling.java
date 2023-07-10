@@ -30,7 +30,7 @@ import static org.springframework.http.HttpStatus.*;
 
 @Slf4j
 @RestControllerAdvice
-public class GlobalExceptionException extends ResponseEntityExceptionHandler {
+public class GlobalExceptionHandling extends ResponseEntityExceptionHandler {
 //implements ErrorController
 
     private static final String ACCOUNT_LOCKED = "Your account has been locked. Please contact administration";
@@ -61,6 +61,11 @@ public class GlobalExceptionException extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(CommentNotFoundException.class)
     public ResponseEntity<HttpResponse> commentNotFoundException(CommentNotFoundException exception) {
+        return createHttpResponse(NOT_FOUND, exception.getMessage());
+    }
+
+    @ExceptionHandler(CategoryNotFoundException.class)
+    public ResponseEntity<HttpResponse> categoryNotFoundException(CategoryNotFoundException exception) {
         return createHttpResponse(NOT_FOUND, exception.getMessage());
     }
 
@@ -121,13 +126,6 @@ public class GlobalExceptionException extends ResponseEntityExceptionHandler {
         return createHttpResponse(FORBIDDEN, NOT_ENOUGH_PERMISSION);
     }
 
-    private ResponseEntity<HttpResponse> createHttpResponse(HttpStatus httpStatus, String message) {
-        return new ResponseEntity<>(new HttpResponse(
-                httpStatus.value(),
-                httpStatus,
-                message),
-                httpStatus);
-    }
 
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,
@@ -146,4 +144,13 @@ public class GlobalExceptionException extends ResponseEntityExceptionHandler {
         return new ResponseEntity<Object>(body, HttpStatus.BAD_REQUEST);
     }
 
+
+
+    private ResponseEntity<HttpResponse> createHttpResponse(HttpStatus httpStatus, String message) {
+        return new ResponseEntity<>(new HttpResponse(
+                httpStatus.value(),
+                httpStatus,
+                message),
+                httpStatus);
+    }
 }

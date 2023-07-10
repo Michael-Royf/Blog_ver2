@@ -6,7 +6,6 @@ import com.michael.blog.entity.Post;
 import com.michael.blog.entity.User;
 import com.michael.blog.exception.payload.ImageNotFoundException;
 import com.michael.blog.exception.payload.PostNotFoundException;
-import com.michael.blog.exception.payload.UsernameExistException;
 import com.michael.blog.payload.request.PostRequest;
 import com.michael.blog.payload.response.MessageResponse;
 import com.michael.blog.payload.response.PostResponse;
@@ -19,6 +18,7 @@ import com.michael.blog.service.UserService;
 import com.michael.blog.utility.ImageUtils;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -38,6 +38,7 @@ import static com.michael.blog.constants.FileConstant.IMAGE_NOT_FOUND;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class PostServiceImpl implements PostService {
 
     private final PostRepository postRepository;
@@ -133,6 +134,14 @@ public class PostServiceImpl implements PostService {
     public List<PostResponse> getPostsByCategory(Long categoryId) {
         getCategoryFromDBById(categoryId);
         return postRepository.findPostsByCategoryId(categoryId).stream()
+                .map(post -> mapper.map(post, PostResponse.class))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<PostResponse> searchPosts(String query) {
+        return postRepository.searchPost(query)
+                .stream()
                 .map(post -> mapper.map(post, PostResponse.class))
                 .collect(Collectors.toList());
     }

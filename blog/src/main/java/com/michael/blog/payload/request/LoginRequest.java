@@ -11,9 +11,9 @@ import lombok.*;
 @Builder
 @Schema(description = "LoginRequest model Information")
 public class LoginRequest {
-    @Schema(description = "Username")
-    @NotBlank(message = "Username should not be empty")
-    private String username;
+    @Schema(description = "Username or Email")
+    @NotBlank(message = "Username or Email should not be empty")
+    private String usernameOrEmail;
     @Schema(description = "password")
     @NotBlank(message = "Password should not be empty")
     private String password;

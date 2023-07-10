@@ -27,7 +27,6 @@ public class Comment {
             allocationSize = 1
     )
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "comment_sequence")
-    // @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @Column(nullable = false)
     private String username;
@@ -74,7 +73,6 @@ public class Comment {
 //    } else {
 //        throw new IllegalStateException("Can not add more than 2 images to a comment");
 //    }
-
 
 
     public void removeImageURL(String imageURL) {

@@ -49,7 +49,7 @@ public class ImageUtils {
                 .build();
         profileImage = profileImageRepository.save(profileImage);
         user.setProfileImageURL(profileImage.getProfileImageURL());
-        log.info("Saved Profile Image in database by name: {} " + profileImage.getFileName());
+        log.info("Saved Profile Image in database by name: {}", profileImage.getFileName());
         saveProfileImageToLocalSystem(user, profileImage);
     }
 
@@ -72,7 +72,7 @@ public class ImageUtils {
                     .build();
             profileImageDB = profileImageRepository.save(profileImageDB);
             user.setProfileImageURL(profileImageDB.getProfileImageURL());
-            log.info("Saved file in database by name: {}" + profileImage.getOriginalFilename());
+            log.info("Saved file in database by name: {}", profileImage.getOriginalFilename());
             saveProfileImageToLocalSystem(user, profileImageDB);
         } else {
             throw new ImageNotFoundException(IMAGE_NOT_FOUND);
@@ -168,7 +168,6 @@ public class ImageUtils {
                 } catch (IOException e) {
                     throw new RuntimeException("Failed to create a directory for the avatar on the local computer");
                 }
-                log.info(DIRECTORY_CREATED + userFolder);
             }
             try {
                 Files.deleteIfExists(Paths.get(userFolder + user.getUsername() + DOT + JPG_EXTENSION));

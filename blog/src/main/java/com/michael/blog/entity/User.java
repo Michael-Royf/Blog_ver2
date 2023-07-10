@@ -22,6 +22,7 @@ import java.util.List;
 @Builder
 @Entity
 @Table(name = "users")
+
 public class User implements UserDetails {
     @Id
     @SequenceGenerator(
@@ -30,7 +31,6 @@ public class User implements UserDetails {
             allocationSize = 1
     )
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_sequence")
-
     @Column(nullable = false, updatable = false)
     private Long id;
     //    @Column(nullable = false, updatable = false)

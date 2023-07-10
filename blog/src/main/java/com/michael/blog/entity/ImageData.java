@@ -3,7 +3,6 @@ package com.michael.blog.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.annotations.Type;
 
 import java.sql.Types;
 
@@ -22,16 +21,15 @@ public class ImageData {
             allocationSize = 1
     )
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "image_sequence")
-//    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @Column(nullable = false, unique = true, name = "file_name")
     private String fileName;
     @Column(name = "file_type", nullable = false)
     private String fileType;
 
-     @Lob
-     @JdbcTypeCode(Types.BINARY)
- //   @Column(columnDefinition = "longblob")
+    @Lob
+    @JdbcTypeCode(Types.BINARY)
+    //   @Column(columnDefinition = "longblob")
     private byte[] data;
     @Column(nullable = false, name = "image_URL", unique = true)
     private String imageURL;

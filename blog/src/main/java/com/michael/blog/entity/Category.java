@@ -17,13 +17,13 @@ public class Category {
     @SequenceGenerator(
             name = "category_sequence",
             sequenceName = "category_sequence",
-            allocationSize = 1
-    )
+            allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "category_sequence")
-    //  @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(updatable = false)
     private Long id;
+    @Column( nullable = false, unique = true)
     private String name;
+    @Column(nullable = false)
     private String description;
 
     @OneToMany(mappedBy = "category", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)

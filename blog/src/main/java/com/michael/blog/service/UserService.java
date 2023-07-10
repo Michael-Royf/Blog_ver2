@@ -3,6 +3,7 @@ package com.michael.blog.service;
 import com.michael.blog.entity.User;
 import com.michael.blog.payload.request.LoginRequest;
 import com.michael.blog.payload.request.PasswordChangeRequest;
+import com.michael.blog.payload.request.UpdateUserRequest;
 import com.michael.blog.payload.request.UserRequest;
 import com.michael.blog.payload.response.JwtAuthResponse;
 import com.michael.blog.payload.response.MessageResponse;
@@ -25,7 +26,7 @@ public interface UserService {
 
     UserResponse getMyProfile();
 
-    UserResponse updateUser(UserRequest registerRequest);
+    UserResponse updateUser(UpdateUserRequest userRequest);
 
     String deleteUser();
 

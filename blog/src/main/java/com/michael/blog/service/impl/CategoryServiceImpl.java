@@ -1,11 +1,13 @@
 package com.michael.blog.service.impl;
 
 import com.michael.blog.entity.Category;
+import com.michael.blog.exception.payload.CategoryNotFoundException;
 import com.michael.blog.payload.request.CategoryRequest;
 import com.michael.blog.payload.response.CategoryResponse;
 import com.michael.blog.repository.CategoryRepository;
 import com.michael.blog.service.CategoryService;
 import jakarta.persistence.EntityNotFoundException;
+import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
@@ -13,18 +15,18 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class CategoryServiceImpl implements CategoryService {
 
     private final CategoryRepository categoryRepository;
     private final ModelMapper modelMapper;
 
-    public CategoryServiceImpl(CategoryRepository categoryRepository, ModelMapper modelMapper) {
-        this.categoryRepository = categoryRepository;
-        this.modelMapper = modelMapper;
-    }
 
     @Override
     public CategoryResponse createCategory(CategoryRequest categoryRequest) {
+        if (categoryRepository.existsByNameIgnoreCase(categoryRequest.getName())) {
+            throw new RuntimeException(String.format("Category with name %s already exists", categoryRequest.getName()));
+        }
         Category category = Category.builder()
                 .name(categoryRequest.getName())
                 .description(categoryRequest.getDescription())
@@ -35,8 +37,7 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public CategoryResponse getCategory(Long categoryId) {
-        Category category = categoryRepository.findById(categoryId)
-                .orElseThrow(() -> new EntityNotFoundException(String.format("Category with id %d not found", categoryId)));
+        Category category = getCategoryFromDBById(categoryId);
         return modelMapper.map(category, CategoryResponse.class);
     }
 
@@ -67,6 +68,6 @@ public class CategoryServiceImpl implements CategoryService {
 
     private Category getCategoryFromDBById(Long categoryId) {
         return categoryRepository.findById(categoryId)
-                .orElseThrow(() -> new EntityNotFoundException(String.format("Category with id %d not found", categoryId)));
+                .orElseThrow(() -> new CategoryNotFoundException(String.format("Category with id %d not found", categoryId)));
     }
 }
